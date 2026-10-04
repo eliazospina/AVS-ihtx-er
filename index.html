@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>AVS IHTX-er</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+<!-- Toolbar -->
+<div id="top-bar">
+  <h1>AVS IHTX-er</h1>
+  <input type="file" id="fileInput" accept="video/*" style="position:absolute;width:0;height:0;opacity:0;overflow:hidden">
+  <label for="fileInput" id="chooseBtn" class="toolbar-btn">Choose Video</label>
+  <button id="playBtn" disabled="" onclick="togglePlay()">Play</button>
+  <button id="proExportBtn" disabled="" onclick="startProExport()" title="Frame-accurate export via WebCodecs (Chrome 94+). Seeks every frame — slower, zero drops.">Process</button>
+  <button id="cancelBtn" onclick="cancelExport()">Cancel Export</button>
+  <button id="themeBtn" onclick="toggleTheme()" title="Switch light / dark theme">🌙 Dark</button>
+  <button id="dlBtn" onclick="downloadHtmlFile()" title="Save a single self-contained .html you can open anywhere.">⤓ Download HTML</button>
+</div>
+
+<!-- Canvas panel (top centre) -->
+<div id="canvas-panel">
+  <div id="no-video">No video loaded</div>
+  <div id="webgl-error">WebGL not supported in this browser.<br>Try Chrome or Firefox.</div>
+  <canvas id="glCanvas" style="display:none"></canvas>
+</div>
+
+<!-- Layers panel (middle) -->
+<div id="layers-section">
+  <div id="layers-header">
+    <span>EFFECTS LAYERS</span>
+    <button id="addLayerBtn" onclick="addLayer()">+ Add Layer</button>
+  </div>
+  <div id="layers-list"></div>
+</div>
+
+<!-- Effect chain save/load -->
+<div id="chain-mgmt-section">
+  <div id="chain-mgmt-header"><span>EFFECT CHAIN MANAGEMENT</span></div>
+  <div id="chain-mgmt-actions">
+    <button id="saveChainBtn" onclick="saveEffectChain()">Save Effect Chain</button>
+    <input type="file" id="chainFileInput" accept="application/json,.json" style="position:absolute;width:0;height:0;opacity:0;overflow:hidden" onchange="loadEffectChainFile(event)">
+    <label for="chainFileInput" id="loadChainBtn" class="toolbar-btn">Load Effect Chain</label>
+  </div>
+</div>
+
+<!-- Audio pitch layers (pitch shift — tempo and length unchanged) -->
+<div id="audio-pitch-section">
+  <div id="audio-pitch-header">
+    <span>AUDIO PITCH LAYERS</span>
+    <button id="addPitchLayerBtn" onclick="addPitchLayer()">+ Add Layer</button>
+  </div>
+  <div id="audio-pitch-list"><span class="pitch-mix-hint">No pitch layers — original audio passes through.</span></div>
+</div>
+
+<!-- Repetitions / Duration bar (bottom, above status) -->
+<div id="repeat-bar">
+  <label>REPETITIONS</label>
+  <input type="number" id="repetitionsInput" value="1" min="1" max="999" step="1" onchange="updateRepeatHint()" oninput="updateRepeatHint()">
+  <span class="repeat-hint">
+    concat: <span class="rep-seq" id="repeatSeqLabel">1</span>
+    &nbsp;·&nbsp; effects re-applied per pass
+  </span>
+  <span style="color:#44a;margin:0 4px">│</span>
+  <label>DURATION</label>
+  <input type="number" id="durationInput" value="" min="0" step="0.01" placeholder="full" style="width:62px" title="Trim: stop each repetition at this many seconds (leave blank for full video)" onchange="updateRepeatHint()" oninput="updateRepeatHint()">
+  <span class="repeat-hint">sec &nbsp;·&nbsp; trims end</span>
+  <span style="color:#44a;margin:0 4px">│</span>
+  <label>FPS</label>
+  <input type="number" id="fpsInput" value="30" min="1" max="120" step="1" style="width:52px" title="Export frame rate — also used to snap the duration trim to an exact frame boundary" onchange="updateRepeatHint()" oninput="updateRepeatHint()">
+  <span class="repeat-hint" id="trimFramesLabel"></span>
+  <span style="color:#44a;margin:0 4px">│</span>
+  <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;user-select:none">
+    <input type="checkbox" id="lastRepOnlyChk" onchange="updateRepeatHint()" title="Export only the last repetition — effects are still applied N times, but the output is one rep long">
+    <span style="font-size:11px;font-weight:bold;color:#aaa;letter-spacing:.04em">LAST REP ONLY</span>
+  </label>
+</div>
+
+<!-- Status bar -->
+<div id="status-bar">
+  <div id="status-text">Ready</div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+</div>
+
+<!-- Output strip (bottom) -->
+<div id="output-strip">
+  <span id="output-strip-label">OUTPUT</span>
+  <video id="outputVideo" controls=""></video>
+  <div id="output-strip-actions">
+    <button onclick="downloadOutput()">Download</button>
+    <button onclick="closeOutputStrip()">Close</button>
+  </div>
+</div>
+
+<!-- Effect type dropdown -->
+<div id="effect-dropdown" style="display: none;"></div>
+
+<video id="srcVideo" playsinline=""></video>
+<script src="script.js"></script>
+</body>
+</html>

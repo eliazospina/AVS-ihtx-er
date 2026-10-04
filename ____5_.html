@@ -1,0 +1,2529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>AVS IHTX-er</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ═══════════════════════════════════════════════════════
+   AVS THEME — white · gray · dark blue (the only theme)
+   ═══════════════════════════════════════════════════════ */
+body {
+  --font: 'Segoe UI', 'Tahoma', 'Verdana', sans-serif;
+  --bg: linear-gradient(180deg, #f6f8fb 0%, #dde2ea 55%, #c3cad6 100%);
+  --txt: #16243c; --txt-dim: #44556f; --txt-head: #12305a; --txt-faint: #2a3b57;
+  --accent: #1c4a85; --accent-bright: #2a64ad;
+  --btn-grad: linear-gradient(180deg, #ffffff 0%, #e6eaf0 50%, #c6cdd8 100%);
+  --btn-text: #12305a; --btn-border: rgba(28,74,133,0.55);
+  --btn-shadow: rgba(18,48,90,0.25);
+  --panel-grad: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(226,231,239,0.95));
+  --panel-border: rgba(28,74,133,0.35); --panel-shadow: rgba(18,48,90,0.22);
+  --header-grad: linear-gradient(180deg, #d5dce8, #b7c2d4);
+  --card-grad: linear-gradient(180deg, #eef1f6, #d6dce6);
+  --card-shadow: rgba(18,48,90,0.2);
+  --canvas-grad: linear-gradient(180deg, #0f1c33, #070e1c);
+  --canvas-border: #1c4a85; --canvas-shadow: rgba(10,25,55,0.5);
+  --canvas-txt: #9fb6d6;
+  --topbar-grad: linear-gradient(180deg, #ffffff, #d3d9e3);
+  --topbar-border: #1c4a85; --topbar-shadow: rgba(18,48,90,0.3);
+  --input-bg: #ffffff; --input-border: rgba(28,74,133,0.5);
+  --input-focus: #2a64ad; --input-glow: rgba(42,100,173,0.55);
+  --dd-grad: linear-gradient(180deg, #ffffff, #e3e8f0);
+  --dd-text: #12305a; --dd-hover: rgba(42,100,173,0.2); --dd-active: rgba(42,100,173,0.32);
+  --chain-grad: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(222,228,237,0.95));
+  --chain-border: rgba(28,74,133,0.35); --chain-shadow: rgba(18,48,90,0.2);
+  --chain-header: linear-gradient(180deg, #d5dce8, #b7c2d4);
+  --chain-title: #12305a;
+  --bar-grad: linear-gradient(180deg, #f3f5f9, #d9dfe8);
+  --status-grad: linear-gradient(180deg, #f3f5f9, #d9dfe8);
+  --output-grad: linear-gradient(180deg, #f3f5f9, #d3dae5);
+  --trig-grad: linear-gradient(180deg, #3c78c2, #1c4a85);
+  --trig-text: #fff;
+  --progress-grad: linear-gradient(90deg, #6f8fbf, #1c4a85);
+  --rep-seq: #1c4a85; --sep: #1c4a85;
+}
+
+body {
+  color: var(--txt);
+  font-family: var(--font);
+  font-size: 13px;
+  display: flex; flex-direction: column; min-height: 100vh; overflow-y: auto;
+  background: var(--bg);
+  transition: background .3s ease, color .3s ease;
+}
+
+#top-bar {
+  position: relative; z-index: 100;
+  background: var(--topbar-grad);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  padding: 8px 14px; display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--topbar-border);
+  box-shadow: 0 2px 12px var(--topbar-shadow);
+  flex-shrink: 0; flex-wrap: wrap;
+}
+#top-bar h1 {
+  font-size: 14px; font-weight: bold; flex: 1; letter-spacing: 0.4px;
+  color: var(--txt-head); text-shadow: 0 1px 0 rgba(255,255,255,0.3); min-width: 150px;
+}
+#dl-note {
+  font-size: 11px; color: var(--txt-dim); background: rgba(255,255,255,0.35);
+  border: 1px solid var(--topbar-border); padding: 4px 10px; border-radius: 999px;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.2); white-space: nowrap;
+}
+#dl-note b { color: var(--accent-bright); }
+
+button, label.toolbar-btn {
+  background: var(--btn-grad);
+  color: var(--btn-text);
+  border: 1px solid var(--btn-border);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 1px 3px var(--btn-shadow);
+  padding: 5px 12px; cursor: pointer;
+  font-family: var(--font);
+  font-weight: bold; font-size: 12px; border-radius: 9px;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.25);
+  transition: box-shadow .15s, transform .05s, filter .15s;
+}
+button:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 2px 5px rgba(0,0,0,0.35); }
+button:hover:not(:disabled), label.toolbar-btn:not(.disabled):hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 0 10px var(--input-glow);
+  filter: brightness(1.06);
+}
+button:disabled {
+  color: color-mix(in srgb, var(--btn-text) 40%, transparent); cursor: default;
+  background: linear-gradient(180deg, #cfcfcf, #b0b0b0);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6); text-shadow: none; border-color: #ddd;
+}
+label.toolbar-btn.disabled {
+  color: color-mix(in srgb, var(--btn-text) 40%, transparent); cursor: default; pointer-events: none;
+  background: linear-gradient(180deg, #cfcfcf, #b0b0b0);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6); text-shadow: none; border-color: #ddd;
+}
+#cancelBtn { border-color: #ffb58a; color: #b4480b; background: linear-gradient(180deg, #ffe9da, #ffb17c); display: none; }
+#cancelBtn:hover:not(:disabled) { box-shadow: inset 0 1px 0 #fff, 0 0 10px rgba(255,150,80,.95); }
+
+/* ── Theme picker ── */
+
+/* ── Dark theme ── */
+body.dark {
+  --bg: linear-gradient(180deg, #151a22 0%, #0e1218 55%, #080b10 100%);
+  --txt: #d6deea; --txt-dim: #93a2b8; --txt-head: #b9cdea; --txt-faint: #a9c2e6;
+  --accent: #5b93d8; --accent-bright: #7fb0f0;
+  --btn-grad: linear-gradient(180deg, #2f3948 0%, #1f2733 50%, #151b25 100%);
+  --btn-text: #c6d8f0; --btn-border: rgba(110,160,225,0.45);
+  --btn-shadow: rgba(0,0,0,0.55);
+  --panel-grad: linear-gradient(180deg, rgba(30,37,48,0.96), rgba(20,25,33,0.96));
+  --panel-border: rgba(110,160,225,0.3); --panel-shadow: rgba(0,0,0,0.55);
+  --header-grad: linear-gradient(180deg, #2a3443, #1b222d);
+  --card-grad: linear-gradient(180deg, #232b37, #19202a);
+  --card-shadow: rgba(0,0,0,0.5);
+  --canvas-border: #3a5f94; --canvas-txt: #7f97b8;
+  --topbar-grad: linear-gradient(180deg, #262e3b, #171d27);
+  --topbar-border: #3a5f94; --topbar-shadow: rgba(0,0,0,0.6);
+  --input-bg: #10151c; --input-border: rgba(110,160,225,0.45);
+  --input-focus: #5b93d8; --input-glow: rgba(91,147,216,0.5);
+  --dd-grad: linear-gradient(180deg, #262e3b, #191f29);
+  --dd-text: #c6d8f0; --dd-hover: rgba(91,147,216,0.25); --dd-active: rgba(91,147,216,0.42);
+  --chain-grad: linear-gradient(180deg, rgba(30,37,48,0.96), rgba(20,25,33,0.96));
+  --chain-border: rgba(110,160,225,0.3); --chain-shadow: rgba(0,0,0,0.5);
+  --chain-header: linear-gradient(180deg, #2a3443, #1b222d);
+  --chain-title: #b9cdea;
+  --bar-grad: linear-gradient(180deg, #202835, #171d27);
+  --status-grad: linear-gradient(180deg, #202835, #171d27);
+  --output-grad: linear-gradient(180deg, #202835, #141a23);
+  --trig-grad: linear-gradient(180deg, #4a82cc, #2a5a9c);
+  --progress-grad: linear-gradient(90deg, #4a73ad, #7fb0f0);
+  --rep-seq: #7fb0f0; --sep: #5b93d8;
+  color-scheme: dark;
+}
+body.dark button, body.dark label.toolbar-btn, body.dark #top-bar h1, body.dark .layer-title,
+body.dark #layers-header span, body.dark .layer-header { text-shadow: none; }
+body.dark button, body.dark label.toolbar-btn { box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 3px var(--btn-shadow); }
+body.dark button:disabled, body.dark label.toolbar-btn.disabled {
+  background: linear-gradient(180deg, #2a2f38, #20242b); border-color: #3a4250; color: #66707f; box-shadow: none;
+}
+body.dark .effect-type-btn { background: linear-gradient(180deg, #2f3948, #1f2733); color: var(--txt-faint); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); }
+body.dark .effect-type-btn:hover { background: linear-gradient(180deg, #3a4658, #263040); }
+body.dark .layer-header { background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.01)); }
+body.dark .layer-del { background: linear-gradient(180deg, #5a2a22, #3a1812); border-color: #8c3f30; color: #ffb4a2; }
+body.dark #dl-note { background: rgba(255,255,255,0.06); }
+body.dark #cancelBtn { background: linear-gradient(180deg, #5a3520, #3a2010); border-color: #a4622f; color: #ffb27a; }
+body.dark #repeat-bar span[style*="aaa"] { color: #93a2b8 !important; }
+body.dark select.param-input { color-scheme: dark; }
+#themeBtn { min-width: 84px; }
+
+/* ── Parameter animation ── */
+.anim-btn { padding: 1px 6px !important; font-size: 10px !important; border-radius: 6px !important; line-height: 1.4; }
+.anim-btn.on { background: var(--trig-grad) !important; color: var(--trig-text) !important; border-color: var(--accent) !important; text-shadow: none; }
+.anim-to { width: 54px; }
+.anim-arrow { font-size: 11px; color: var(--accent-bright); font-weight: bold; }
+.param-cell { display: inline-flex; align-items: center; gap: 3px; margin-right: 6px; }
+.anim-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-top: 6px; border-top: 1px dashed var(--panel-border); }
+
+
+/* ── Canvas panel (top centre) ── */
+#canvas-panel {
+  position: relative; z-index: 2;
+  flex: 0 0 38vh; display: flex; align-items: center; justify-content: center;
+  background: var(--canvas-grad);
+  border: 3px solid var(--canvas-border);
+  border-radius: 16px; margin: 8px 12px;
+  box-shadow: inset 0 1px 3px rgba(255,255,255,0.15), 0 8px 22px var(--canvas-shadow);
+  overflow: hidden;
+}
+#glCanvas { display: block; max-width: 100%; max-height: 100%; }
+#no-video { color: var(--canvas-txt); font-size: 14px; position: absolute; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+#webgl-error { color: #ffb1a8; font-size: 12px; position: absolute; text-align: center; padding: 20px; display: none; }
+
+/* ── Layers panel (middle) ── */
+#layers-section {
+  position: relative; z-index: 2;
+  flex-shrink: 0; display: flex; flex-direction: column;
+  margin: 0 12px 10px;
+  background: var(--panel-grad);
+  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px; box-shadow: 0 5px 16px var(--panel-shadow);
+  overflow: hidden;
+}
+#layers-header {
+  padding: 6px 10px; border-bottom: 1px solid var(--panel-border);
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  background: var(--header-grad);
+}
+#layers-header span {
+  flex: 1; font-weight: bold; font-size: 12px; letter-spacing: 1px;
+  color: var(--txt-head); text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+}
+#layers-list { padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+
+/* ── Layer card ── */
+.layer-item {
+  border: 1px solid var(--panel-border);
+  background: var(--card-grad);
+  border-radius: 11px; width: 100%; flex-shrink: 0; display: flex; flex-direction: column;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 7px var(--card-shadow);
+}
+.layer-header {
+  display: flex; align-items: center; gap: 4px; padding: 5px 7px;
+  border-bottom: 1px solid var(--panel-border);
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.08));
+}
+.layer-title { flex: 1; font-weight: bold; font-size: 11px; color: var(--txt-head); text-shadow: 0 1px 0 rgba(255,255,255,0.3); }
+.layer-del { background: linear-gradient(180deg, #ffe2d6, #ff9d78); border-color: #ff8f66; color: #9c2b08; font-size: 10px; padding: 2px 9px; }
+.layer-body { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.effect-row { display: flex; align-items: center; gap: 6px; }
+.effect-type-btn {
+  background: linear-gradient(180deg, #ffffff, #c2eafb); border: 1px solid var(--input-border);
+  color: var(--txt-faint); padding: 3px 9px; cursor: pointer;
+  font-family: var(--font); font-size: 11px; border-radius: 8px;
+  box-shadow: inset 0 1px 0 #fff; font-weight: bold;
+}
+.effect-type-btn:hover { background: linear-gradient(180deg, #fff, #dff4ff); }
+.trig-active { background: var(--trig-grad) !important; color: var(--trig-text) !important; border-color: var(--accent) !important; text-shadow: 0 -1px 1px rgba(0,0,0,.3); }
+.param-group { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.param-label { font-size: 10px; color: var(--txt-dim); white-space: nowrap; }
+.param-input {
+  background: var(--input-bg); color: var(--txt); border: 1px solid var(--input-border); width: 58px;
+  padding: 2px 4px; font-family: monospace; font-size: 11px; border-radius: 5px;
+}
+.param-input:focus { outline: none; border-color: var(--input-focus); box-shadow: 0 0 6px var(--input-glow); background: var(--input-bg); }
+@media (max-width: 768px) { .param-input, #repeat-bar input[type=number], #durationInput { font-size: 16px; } }
+.toggle-row { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.toggle-label { display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 11px; color: var(--txt-dim); }
+.toggle-label input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+
+/* ── Channel Remap matrix ── */
+
+/* ── Effect dropdown ── */
+#effect-dropdown {
+  position: fixed; z-index: 1000; display: none;
+  min-width: 150px; padding: 5px;
+  max-height: 70vh; overflow-y: auto;
+  background: var(--dd-grad);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px; box-shadow: 0 6px 22px rgba(0,0,0,0.4);
+}
+.dd-item {
+  padding: 7px 14px; cursor: pointer;
+  font-family: var(--font); font-size: 12px;
+  white-space: nowrap; color: var(--dd-text); letter-spacing: 0.3px; border-radius: 7px;
+}
+.dd-item + .dd-item { margin-top: 1px; }
+.dd-item:hover, .dd-item:active { background: var(--dd-hover); color: var(--txt-faint); }
+.dd-item.active { color: var(--txt-faint); background: var(--dd-active); font-weight: bold; }
+
+/* ── Effect chain save/load ── */
+#chain-mgmt-section {
+  position: relative; z-index: 2;
+  flex-shrink: 0; display: flex; flex-direction: column;
+  margin: 0 12px 10px;
+  background: var(--chain-grad);
+  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  border: 1px solid var(--chain-border);
+  border-radius: 14px; box-shadow: 0 5px 16px var(--chain-shadow);
+  overflow: hidden;
+}
+#chain-mgmt-header { padding: 6px 10px; border-bottom: 1px solid var(--chain-border); background: var(--chain-header); }
+#chain-mgmt-header span { font-weight: bold; font-size: 12px; letter-spacing: 1px; color: var(--chain-title); text-shadow: 0 1px 0 rgba(255,255,255,0.3); }
+#audio-pitch-section {
+  position: relative; z-index: 2; flex-shrink: 0; display: flex; flex-direction: column;
+  margin: 0 12px 10px; background: var(--chain-grad);
+  border: 1px solid var(--chain-border); border-radius: 14px; box-shadow: 0 5px 16px var(--chain-shadow);
+  overflow: hidden;
+}
+#audio-pitch-header { padding: 6px 10px; border-bottom: 1px solid var(--chain-border); background: var(--chain-header); display: flex; align-items: center; gap: 8px; }
+#audio-pitch-header span { flex: 1; font-weight: bold; font-size: 12px; letter-spacing: 1px; color: var(--chain-title); }
+#audio-pitch-list { padding: 7px 8px; display: flex; flex-direction: column; gap: 6px; }
+.pitch-layer-item { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 5px 8px; border: 1px solid var(--chain-border); border-radius: 10px; background: var(--card-grad); }
+.pitch-layer-title { font-size: 11px; font-weight: bold; color: var(--chain-title); white-space: nowrap; }
+.pitch-layer-del { font-size: 10px; padding: 2px 9px; margin-left: auto; }
+.pitch-mix-hint { font-size: 10px; color: var(--txt-dim); padding: 4px 8px; font-style: italic; }
+#chain-mgmt-actions { padding: 8px 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+
+/* ── Repetitions bar ── */
+#repeat-bar {
+  position: relative; z-index: 2;
+  background: var(--bar-grad);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  padding: 6px 12px; font-size: 11px;
+  border-top: 1px solid var(--topbar-border); border-bottom: 1px solid var(--topbar-border);
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap;
+}
+#repeat-bar label { color: var(--txt-head); white-space: nowrap; letter-spacing: 0.5px; font-weight: bold; }
+#repeat-bar input[type=number] {
+  background: var(--input-bg); color: var(--txt); border: 1px solid var(--input-border); width: 54px;
+  padding: 2px 4px; font-family: monospace; font-size: 12px; border-radius: 5px;
+}
+#repeat-bar input[type=number]:focus { outline: none; border-color: var(--input-focus); box-shadow: 0 0 6px var(--input-glow); }
+#repeat-bar .repeat-hint { color: var(--txt-dim); font-size: 10px; flex: 1; }
+#repeat-bar .repeat-hint .rep-seq { color: var(--rep-seq); font-weight: bold; }
+#repeat-bar [style*="44a"] { color: var(--sep) !important; }
+
+/* ── Status bar ── */
+#status-bar {
+  position: relative; z-index: 2;
+  background: var(--status-grad);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  padding: 5px 12px; font-size: 11px; color: var(--txt-head);
+  border-top: 1px solid var(--topbar-border);
+  flex-shrink: 0;
+}
+#progress-bar { height: 5px; background: color-mix(in srgb, var(--accent) 30%, transparent); margin-top: 3px; border-radius: 3px; overflow: hidden; }
+#progress-fill { height: 5px; background: var(--progress-grad); width: 0%; transition: width 0.15s; border-radius: 3px; box-shadow: 0 0 8px var(--input-glow); }
+
+/* ── Output strip (bottom) ── */
+#output-strip {
+  position: relative; z-index: 2;
+  display: none; border-top: 1px solid var(--topbar-border);
+  background: var(--output-grad);
+  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  padding: 8px 12px; flex-shrink: 0;
+  align-items: center; justify-content: center; gap: 14px;
+}
+#output-strip.visible { display: flex; }
+#output-strip-label { font-size: 11px; color: var(--txt-head); font-weight: bold; white-space: nowrap; align-self: flex-start; padding-top: 4px; }
+#outputVideo { max-height: 160px; max-width: 55%; border: 3px solid var(--panel-border); border-radius: 12px; background: #000; display: block; box-shadow: 0 5px 14px var(--canvas-shadow); }
+#output-strip-actions { display: flex; flex-direction: column; gap: 6px; align-self: flex-start; }
+
+/* Must stay technically "rendered" (not display:none) or Chrome/WebKit
+   throttle video decode + requestVideoFrameCallback to a fraction of the
+   real frame rate to save resources on hidden elements. Keep it in
+   normal layout flow (off-screen, invisible, non-interactive) instead of
+   display:none to avoid that throttling while still hiding it from the UI. */
+video#srcVideo {
+  position: fixed;
+  left: -99999px;
+  top: 0;
+  width: 2px;
+  height: 2px;
+  opacity: 0.01;
+  pointer-events: none;
+}
+
+</style>
+</head>
+<body>
+
+
+<!-- Toolbar -->
+<div id="top-bar">
+  <h1>AVS IHTX-er</h1>
+  <input type="file" id="fileInput" accept="video/*" style="position:absolute;width:0;height:0;opacity:0;overflow:hidden">
+  <label for="fileInput" id="chooseBtn" class="toolbar-btn">Choose Video</label>
+  <button id="playBtn" disabled="" onclick="togglePlay()">Play</button>
+  <button id="proExportBtn" disabled="" onclick="startProExport()" title="Frame-accurate export via WebCodecs (Chrome 94+). Seeks every frame — slower, zero drops.">Process</button>
+  <button id="cancelBtn" onclick="cancelExport()">Cancel Export</button>
+  <button id="themeBtn" onclick="toggleTheme()" title="Switch light / dark theme">🌙 Dark</button>
+  <button id="dlBtn" onclick="downloadHtmlFile()" title="Save a single self-contained .html you can open anywhere.">⤓ Download HTML</button>
+</div>
+
+<!-- Canvas panel (top centre) -->
+<div id="canvas-panel">
+  <div id="no-video">No video loaded</div>
+  <div id="webgl-error">WebGL not supported in this browser.<br>Try Chrome or Firefox.</div>
+  <canvas id="glCanvas" style="display:none"></canvas>
+</div>
+
+<!-- Layers panel (middle) -->
+<div id="layers-section">
+  <div id="layers-header">
+    <span>EFFECTS LAYERS</span>
+    <button id="addLayerBtn" onclick="addLayer()">+ Add Layer</button>
+  </div>
+  <div id="layers-list"></div>
+</div>
+
+<!-- Effect chain save/load -->
+<div id="chain-mgmt-section">
+  <div id="chain-mgmt-header"><span>EFFECT CHAIN MANAGEMENT</span></div>
+  <div id="chain-mgmt-actions">
+    <button id="saveChainBtn" onclick="saveEffectChain()">Save Effect Chain</button>
+    <input type="file" id="chainFileInput" accept="application/json,.json" style="position:absolute;width:0;height:0;opacity:0;overflow:hidden" onchange="loadEffectChainFile(event)">
+    <label for="chainFileInput" id="loadChainBtn" class="toolbar-btn">Load Effect Chain</label>
+  </div>
+</div>
+
+<!-- Audio pitch layers (pitch shift — tempo and length unchanged) -->
+<div id="audio-pitch-section">
+  <div id="audio-pitch-header">
+    <span>AUDIO PITCH LAYERS</span>
+    <button id="addPitchLayerBtn" onclick="addPitchLayer()">+ Add Layer</button>
+  </div>
+  <div id="audio-pitch-list"><span class="pitch-mix-hint">No pitch layers — original audio passes through.</span></div>
+</div>
+
+<!-- Repetitions / Duration bar (bottom, above status) -->
+<div id="repeat-bar">
+  <label>REPETITIONS</label>
+  <input type="number" id="repetitionsInput" value="1" min="1" max="999" step="1" onchange="updateRepeatHint()" oninput="updateRepeatHint()">
+  <span class="repeat-hint">
+    concat: <span class="rep-seq" id="repeatSeqLabel">1</span>
+    &nbsp;·&nbsp; effects re-applied per pass
+  </span>
+  <span style="color:#44a;margin:0 4px">│</span>
+  <label>DURATION</label>
+  <input type="number" id="durationInput" value="" min="0" step="0.01" placeholder="full" style="width:62px" title="Trim: stop each repetition at this many seconds (leave blank for full video)" onchange="updateRepeatHint()" oninput="updateRepeatHint()">
+  <span class="repeat-hint">sec &nbsp;·&nbsp; trims end</span>
+  <span style="color:#44a;margin:0 4px">│</span>
+  <label>FPS</label>
+  <input type="number" id="fpsInput" value="30" min="1" max="120" step="1" style="width:52px" title="Export frame rate — also used to snap the duration trim to an exact frame boundary" onchange="updateRepeatHint()" oninput="updateRepeatHint()">
+  <span class="repeat-hint" id="trimFramesLabel"></span>
+  <span style="color:#44a;margin:0 4px">│</span>
+  <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;user-select:none">
+    <input type="checkbox" id="lastRepOnlyChk" onchange="updateRepeatHint()" title="Export only the last repetition — effects are still applied N times, but the output is one rep long">
+    <span style="font-size:11px;font-weight:bold;color:#aaa;letter-spacing:.04em">LAST REP ONLY</span>
+  </label>
+</div>
+
+<!-- Status bar -->
+<div id="status-bar">
+  <div id="status-text">Ready</div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+</div>
+
+<!-- Output strip (bottom) -->
+<div id="output-strip">
+  <span id="output-strip-label">OUTPUT</span>
+  <video id="outputVideo" controls=""></video>
+  <div id="output-strip-actions">
+    <button onclick="downloadOutput()">Download</button>
+    <button onclick="closeOutputStrip()">Close</button>
+  </div>
+</div>
+
+<!-- Effect type dropdown -->
+<div id="effect-dropdown" style="display: none;"></div>
+
+<video id="srcVideo" playsinline=""></video>
+<script>
+// ═══════════════════════════════════════════════════════
+//  WebGL init
+// ═══════════════════════════════════════════════════════
+
+const canvas = document.getElementById('glCanvas');
+const gl     = canvas.getContext('webgl', { preserveDrawingBuffer: true });
+
+if (!gl) {
+  document.getElementById('no-video').style.display   = 'none';
+  document.getElementById('webgl-error').style.display = 'block';
+  document.getElementById('chooseBtn').disabled = true;
+}
+
+const video = document.getElementById('srcVideo');
+
+let layers    = [];
+let programs  = {};
+let framebuffers = [null, null];
+let textures     = [null, null, null]; // [videoTex, fb0Tex, fb1Tex]
+let animFrame    = null;
+let videoLoaded  = false;
+let activeDropdownLayerIdx = null;
+let layerCounter = 0;
+let lastOutputBlobUrl = null;
+
+// How many times the full effects stack is applied per frame.
+// 1 during preview and rep 1; N during export rep N.
+let currentRepMultiplier = 1;
+
+// ═══════════════════════════════════════════════════════
+//  Shaders
+// ═══════════════════════════════════════════════════════
+
+const VERT_SRC = `
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord  = a_texCoord;
+}`;
+
+const FRAG_PASSTHROUGH = `
+precision mediump float;
+varying vec2 v_texCoord;
+uniform sampler2D u_image;
+void main() { gl_FragColor = texture2D(u_image, v_texCoord); }`;
+
+function compileShader(src, type) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+    console.error('Shader:', gl.getShaderInfoLog(s)); gl.deleteShader(s); return null;
+  }
+  return s;
+}
+
+function createProgram(vSrc, fSrc) {
+  const v = compileShader(vSrc, gl.VERTEX_SHADER);
+  const f = compileShader(fSrc, gl.FRAGMENT_SHADER);
+  if (!v || !f) return null;
+  const p = gl.createProgram();
+  gl.attachShader(p, v); gl.attachShader(p, f); gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+    console.error('Link:', gl.getProgramInfoLog(p)); gl.deleteProgram(p); return null;
+  }
+  return p;
+}
+
+let quadBuffer = null;
+function initQuad() {
+  // Standard WebGL orientation: t=0 at bottom, t=1 at top.
+  // UNPACK_FLIP_Y_WEBGL on upload makes the video texture match this convention.
+  // Framebuffer outputs are also in this convention, so ping-pong is consistent.
+  quadBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+  //  x    y    s  t
+    -1,  -1,   0, 0,   // bottom-left  → tex bottom-left
+     1,  -1,   1, 0,   // bottom-right → tex bottom-right
+    -1,   1,   0, 1,   // top-left     → tex top-left
+     1,   1,   1, 1,   // top-right    → tex top-right
+  ]), gl.STATIC_DRAW);
+}
+
+function bindQuad(prog) {
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+  const aPos = gl.getAttribLocation(prog, 'a_position');
+  const aTex = gl.getAttribLocation(prog, 'a_texCoord');
+  gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 16, 0);
+  gl.enableVertexAttribArray(aTex); gl.vertexAttribPointer(aTex, 2, gl.FLOAT, false, 16, 8);
+}
+
+// ═══════════════════════════════════════════════════════
+//  Effects registry — add a new effect by adding one entry here.
+//  Every param becomes a shader uniform named u_<key>.
+//  Also available in every shader: u_time (video seconds), u_aspect (w/h).
+// ═══════════════════════════════════════════════════════
+
+const GLSL_HEAD = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+varying vec2 v_texCoord;
+uniform sampler2D u_image;
+uniform float u_time;
+uniform float u_aspect;
+uniform float u_resX;
+uniform float u_resY;
+`;
+
+const PI2 = '6.28318530718';
+
+const EFFECTS = {
+
+  'Cylinder': {
+    params: [
+      { k:'amount',  label:'Amount',   t:'num', def:50,  step:1,    min:-100, max:100 },
+      { k:'radius',  label:'Radius',   t:'num', def:0.5, step:0.01, min:0.01, max:2 },
+      { k:'centerX', label:'Center X', t:'num', def:0.5, step:0.01 },
+      { k:'centerY', label:'Center Y', t:'num', def:0.5, step:0.01 },
+      { k:'axis',    label:'Axis',     t:'sel', def:0, opts:[['Vertical cylinder (bends X)',0],['Horizontal cylinder (bends Y)',1]] },
+    ],
+    frag: `
+uniform float u_amount, u_radius, u_centerX, u_centerY, u_axis;
+void main(){
+  vec2 c = vec2(u_centerX, u_centerY);
+  vec2 d = v_texCoord - c;
+  float a = (u_axis < 0.5) ? d.x : d.y;
+  float dist = abs(a);
+  float r = max(u_radius, 0.001);
+  if (dist < r) {
+    float falloff = (cos(dist / r * 3.14159265) + 1.0) * 0.5;
+    a -= sign(a) * (u_amount / 100.0) * falloff * dist;
+  }
+  if (u_axis < 0.5) d.x = a; else d.y = a;
+  gl_FragColor = texture2D(u_image, clamp(c + d, 0.0, 1.0));
+}`
+  },
+
+  'Sphere': {
+    params: [
+      { k:'amount',  label:'Amount',   t:'num', def:50,  step:1,    min:-0.1, max:100 },
+      { k:'radius',  label:'Radius',   t:'num', def:0.5, step:0.01, min:0.01, max:2 },
+      { k:'centerX', label:'Center X', t:'num', def:0.5, step:0.01 },
+      { k:'centerY', label:'Center Y', t:'num', def:0.5, step:0.01 },
+    ],
+    frag: `
+uniform float u_amount, u_radius, u_centerX, u_centerY;
+void main(){
+  vec2 c = vec2(u_centerX, u_centerY);
+  vec2 uv = v_texCoord - c;
+  float dist = length(uv);
+  float radius = max(u_radius, 0.001);
+  if (dist > 0.0 && dist < radius) {
+    float falloff = (cos(dist / radius * 3.14159265) + 1.0) * 0.5;
+    uv -= normalize(uv) * (u_amount / 100.0) * falloff * dist;
+  }
+  gl_FragColor = texture2D(u_image, clamp(uv + c, 0.0, 1.0));
+}`
+  },
+
+  'Wave': {
+    params: [
+      { k:'side',   label:'Side',      t:'sel', def:0, opts:[['Left',0],['Right',1],['Top',2],['Bottom',3]] },
+      { k:'speed',  label:'Speed',     t:'num', def:0.5, step:0.1 },
+      { k:'amp',    label:'Amplitude', t:'num', def:3,   step:0.1 },
+      { k:'peaks',  label:'Peaks',     t:'num', def:3,   step:0.5 },
+      { k:'offset', label:'Offset',    t:'num', def:0,   step:0.05 },
+    ],
+    frag: `
+uniform float u_side, u_speed, u_amp, u_peaks, u_offset;
+void main(){
+  vec2 uv = v_texCoord;
+  float p;
+  if (u_side < 0.5)      p = uv.x;          // waves start at the left
+  else if (u_side < 1.5) p = 1.0 - uv.x;    // right
+  else if (u_side < 2.5) p = 1.0 - uv.y;    // top  (uv.y = 1 is the top)
+  else                   p = uv.y;          // bottom
+  float w = sin((p * u_peaks + u_offset) * ${PI2} - u_time * u_speed * ${PI2}) * u_amp * 0.01;
+  if (u_side < 1.5) uv.y += w; else uv.x += w;
+  gl_FragColor = texture2D(u_image, clamp(uv, 0.0, 1.0));
+}`
+  },
+
+  'Ripple': {
+    params: [
+      { k:'speed',   label:'Speed',     t:'num', def:0.5, step:0.1 },
+      { k:'amp',     label:'Amplitude', t:'num', def:2,   step:0.1 },
+      { k:'peaks',   label:'Peaks',     t:'num', def:6,   step:0.5 },
+      { k:'offset',  label:'Offset',    t:'num', def:0,   step:0.05 },
+      { k:'centerX', label:'Center X',  t:'num', def:0.5, step:0.01 },
+      { k:'centerY', label:'Center Y',  t:'num', def:0.5, step:0.01 },
+    ],
+    frag: `
+uniform float u_speed, u_amp, u_peaks, u_offset, u_centerX, u_centerY;
+void main(){
+  vec2 uv = v_texCoord;
+  vec2 d = uv - vec2(u_centerX, u_centerY);
+  d.x *= u_aspect;
+  float r = length(d);
+  if (r > 0.0001) {
+    float w = sin((r * u_peaks + u_offset) * ${PI2} - u_time * u_speed * ${PI2}) * u_amp * 0.01;
+    vec2 off = (d / r) * w;
+    off.x /= u_aspect;
+    uv += off;
+  }
+  gl_FragColor = texture2D(u_image, clamp(uv, 0.0, 1.0));
+}`
+  },
+
+  'Mirror': {
+    params: [
+      { k:'pos',     label:'Position (Y for Down/Up, X for Left/Right)', t:'num', def:0.5, step:0.01, min:0, max:1 },
+      { k:'dir',     label:'Direction',    t:'sel', def:0, opts:[['Down (top is mirrored downward)',0],['Up (bottom is mirrored upward)',1],['Left (right side is mirrored to the left)',2],['Right (left side is mirrored to the right)',3]] },
+      { k:'stretch', label:'Stretch mirrored part to fill the frame', t:'bool', def:true },
+    ],
+    frag: `
+uniform float u_pos, u_dir, u_stretch;
+void main(){
+  float pos = clamp(u_pos, 0.001, 0.999);
+  if (u_dir > 1.5) {
+    // Horizontal mirror line at x = pos (x measured from the left)
+    float x = v_texCoord.x, sx = x;
+    if (u_dir < 2.5) {
+      // Left: the part left of the line stays, the part right of it is its reflection
+      if (x > pos) {
+        sx = (u_stretch > 0.5) ? pos - (x - pos) / (1.0 - pos) * pos
+                               : pos - (x - pos);
+      }
+    } else {
+      // Right: the part right of the line stays, the part left of it is its reflection
+      if (x < pos) {
+        sx = (u_stretch > 0.5) ? pos + (pos - x) / pos * (1.0 - pos)
+                               : pos + (pos - x);
+      }
+    }
+    gl_FragColor = texture2D(u_image, vec2(clamp(sx, 0.0, 1.0), v_texCoord.y));
+    return;
+  }
+  float x = v_texCoord.x;
+  float y = 1.0 - v_texCoord.y;          // y measured from the top
+  float sy = y;
+  if (u_dir < 0.5) {
+    // Down: the part above the line stays, the part below is its reflection
+    if (y > pos) {
+      sy = (u_stretch > 0.5) ? pos - (y - pos) / (1.0 - pos) * pos
+                             : pos - (y - pos);
+    }
+  } else {
+    // Up: the part below the line stays, the part above is its reflection
+    if (y < pos) {
+      sy = (u_stretch > 0.5) ? pos + (pos - y) / pos * (1.0 - pos)
+                             : pos + (pos - y);
+    }
+  }
+  gl_FragColor = texture2D(u_image, vec2(x, 1.0 - clamp(sy, 0.0, 1.0)));
+}`
+  },
+
+  'Sepia': {
+    params: [ { k:'amount', label:'Amount %', t:'num', def:100, step:1, min:0, max:100 } ],
+    frag: `
+uniform float u_amount;
+void main(){
+  vec4 c = texture2D(u_image, v_texCoord);
+  vec3 s = vec3(dot(c.rgb, vec3(0.393, 0.769, 0.189)),
+                dot(c.rgb, vec3(0.349, 0.686, 0.168)),
+                dot(c.rgb, vec3(0.272, 0.534, 0.131)));
+  gl_FragColor = vec4(mix(c.rgb, clamp(s, 0.0, 1.0), u_amount / 100.0), c.a);
+}`
+  },
+
+  'Color Replace': {
+    params: [
+      { k:'from', label:'Replace', t:'col', def:'#ff0000' },
+      { k:'to',   label:'With',    t:'col', def:'#0000ff' },
+      { k:'tol',  label:'Tolerance %', t:'num', def:25, step:1, min:0, max:100 },
+      { k:'soft', label:'Softness %',  t:'num', def:15, step:1, min:0, max:100 },
+      { k:'flat', label:'Mode', t:'sel', def:0, opts:[['Shift (keeps shading)',0],['Flat colour',1]] },
+    ],
+    frag: `
+uniform vec3 u_from;
+uniform vec3 u_to;
+uniform float u_tol, u_soft, u_flat;
+void main(){
+  vec4 c = texture2D(u_image, v_texCoord);
+  float d = distance(c.rgb, u_from) / 1.7320508;
+  float t = u_tol / 100.0;
+  float mask = 1.0 - smoothstep(t, t + max(u_soft / 100.0, 0.0001), d);
+  vec3 shifted = clamp(c.rgb + (u_to - u_from), 0.0, 1.0);
+  vec3 rep = mix(shifted, u_to, u_flat);
+  gl_FragColor = vec4(mix(c.rgb, rep, mask), c.a);
+}`
+  },
+
+  'Colorize': {
+    params: [
+      { k:'black',  label:'Point 1 (black)', t:'col', def:'#000000' },
+      { k:'white',  label:'Point 2',         t:'col', def:'#3c78c2' },
+      { k:'amount', label:'Amount %', t:'num', def:100, step:1, min:0, max:100 },
+    ],
+    frag: `
+uniform vec3 u_black;
+uniform vec3 u_white;
+uniform float u_amount;
+void main(){
+  vec4 c = texture2D(u_image, v_texCoord);
+  float lum = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+  vec3 g = mix(u_black, u_white, lum);
+  gl_FragColor = vec4(mix(c.rgb, g, u_amount / 100.0), c.a);
+}`
+  },
+
+  'Invert': {
+    params: [
+      { k:'red',   label:'Red',   t:'bool', def:true },
+      { k:'green', label:'Green', t:'bool', def:true },
+      { k:'blue',  label:'Blue',  t:'bool', def:true },
+    ],
+    frag: `
+uniform float u_red, u_green, u_blue;
+void main(){
+  vec4 c = texture2D(u_image, v_texCoord);
+  gl_FragColor = vec4(u_red   > 0.5 ? 1.0 - c.r : c.r,
+                      u_green > 0.5 ? 1.0 - c.g : c.g,
+                      u_blue  > 0.5 ? 1.0 - c.b : c.b, c.a);
+}`
+  },
+  'Hue': {
+    params: [ { k:'angle', label:'Angle °', t:'num', def:90, step:1 } ],
+    frag: `
+uniform float u_angle;
+vec3 rgb2hsl(vec3 c){
+  float mx = max(c.r, max(c.g, c.b));
+  float mn = min(c.r, min(c.g, c.b));
+  float l = (mx + mn) * 0.5;
+  float d = mx - mn;
+  float h = 0.0; float s = 0.0;
+  if (d > 0.00001) {
+    s = (l > 0.5) ? d / (2.0 - mx - mn) : d / (mx + mn);
+    if (mx == c.r)      h = mod((c.g - c.b) / d, 6.0);
+    else if (mx == c.g) h = (c.b - c.r) / d + 2.0;
+    else                h = (c.r - c.g) / d + 4.0;
+    h /= 6.0;
+  }
+  return vec3(h, s, l);
+}
+float hue2rgb(float p, float q, float t){
+  t = mod(t, 1.0);
+  if (t < 1.0/6.0) return p + (q - p) * 6.0 * t;
+  if (t < 0.5)     return q;
+  if (t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;
+  return p;
+}
+vec3 hsl2rgb(vec3 c){
+  if (c.y < 0.00001) return vec3(c.z);
+  float q = (c.z < 0.5) ? c.z * (1.0 + c.y) : c.z + c.y - c.z * c.y;
+  float p = 2.0 * c.z - q;
+  return vec3(hue2rgb(p, q, c.x + 1.0/3.0), hue2rgb(p, q, c.x), hue2rgb(p, q, c.x - 1.0/3.0));
+}
+void main(){
+  vec4 c = texture2D(u_image, v_texCoord);
+  vec3 hsl = rgb2hsl(c.rgb);
+  hsl.x = fract(hsl.x + u_angle / 360.0);
+  gl_FragColor = vec4(hsl2rgb(hsl), c.a);
+}`
+  },
+
+  'Temperature': {
+    params: [ { k:'amount', label:'Amount (− cold · + warm)', t:'num', def:30, step:1, min:-100, max:100 } ],
+    frag: `
+uniform float u_amount;
+void main(){
+  vec4 c = texture2D(u_image, v_texCoord);
+  float t = u_amount / 100.0;
+  c.r += t * 0.14;
+  c.g += t * 0.03;
+  c.b -= t * 0.14;
+  gl_FragColor = vec4(clamp(c.rgb, 0.0, 1.0), c.a);
+}`
+  },
+
+  'Contrast': {
+    params: [ { k:'amount', label:'Amount', t:'num', def:40, step:1, min:-100, max:100 } ],
+    frag: `
+uniform float u_amount;
+void main(){
+  vec4 c = texture2D(u_image, v_texCoord);
+  float a = u_amount * 2.55;
+  float f = (259.0 * (a + 255.0)) / (255.0 * (259.0 - a));
+  gl_FragColor = vec4(clamp((c.rgb - 0.5) * f + 0.5, 0.0, 1.0), c.a);
+}`
+  },
+
+  'Saturation': {
+    params: [ { k:'amount', label:'Amount % (100 = original)', t:'num', def:150, step:1, min:0, max:400 } ],
+    frag: `
+uniform float u_amount;
+void main(){
+  vec4 c = texture2D(u_image, v_texCoord);
+  float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+  gl_FragColor = vec4(clamp(mix(vec3(l), c.rgb, u_amount / 100.0), 0.0, 1.0), c.a);
+}`
+  },
+
+  'Grayscale': {
+    params: [ { k:'amount', label:'Amount %', t:'num', def:100, step:1, min:0, max:100 } ],
+    frag: `
+uniform float u_amount;
+void main(){
+  vec4 c = texture2D(u_image, v_texCoord);
+  float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+  gl_FragColor = vec4(mix(c.rgb, vec3(l), u_amount / 100.0), c.a);
+}`
+  },
+
+  'Emboss': {
+    params: [
+      { k:'strength', label:'Strength', t:'num', def:1,   step:0.1, min:0, max:10 },
+      { k:'angle',    label:'Angle °',  t:'num', def:135, step:5 },
+      { k:'size',     label:'Size px',  t:'num', def:1,   step:0.5, min:0.5, max:10 },
+      { k:'mode',     label:'Mode',     t:'sel', def:0, opts:[['Gray',0],['Colour',1]] },
+    ],
+    frag: `
+uniform float u_strength, u_angle, u_size, u_mode;
+void main(){
+  vec2 px = vec2(1.0 / u_resX, 1.0 / u_resY) * u_size;
+  float a = radians(u_angle);
+  vec2 dir = vec2(cos(a), sin(a)) * px;
+  vec4 c  = texture2D(u_image, v_texCoord);
+  vec3 c1 = texture2D(u_image, clamp(v_texCoord + dir, 0.0, 1.0)).rgb;
+  vec3 c2 = texture2D(u_image, clamp(v_texCoord - dir, 0.0, 1.0)).rgb;
+  vec3 diff = (c1 - c2) * u_strength;
+  vec3 outc = (u_mode < 0.5) ? vec3(dot(diff, vec3(0.299, 0.587, 0.114)) + 0.5) : diff + 0.5;
+  gl_FragColor = vec4(clamp(outc, 0.0, 1.0), c.a);
+}`
+  },
+
+  'Brightness': {
+    params: [ { k:'amount', label:'Amount', t:'num', def:30, step:1, min:-100, max:100 } ],
+    frag: `
+uniform float u_amount;
+void main(){
+  vec4 c = texture2D(u_image, v_texCoord);
+  gl_FragColor = vec4(clamp(c.rgb + u_amount / 100.0, 0.0, 1.0), c.a);
+}`
+  },
+
+  'Flip': {
+    params: [
+      { k:'mode', label:'Direction', t:'sel', def:0, opts:[['Horizontal',0],['Vertical',1],['Both',2]] },
+    ],
+    frag: `
+uniform float u_mode;
+void main(){
+  vec2 uv = v_texCoord;
+  if (u_mode < 0.5 || u_mode > 1.5) uv.x = 1.0 - uv.x;
+  if (u_mode > 0.5) uv.y = 1.0 - uv.y;
+  gl_FragColor = texture2D(u_image, uv);
+}`
+  },
+
+  // Tiles the whole picture N×N times: default 3 → 9 copies in one frame.
+  'Resample': {
+    params: [
+      { k:'grid', label:'Tiles per side (3 = 9 pictures)', t:'num', def:3, step:1, min:1, max:16 },
+    ],
+    frag: `
+uniform float u_grid;
+void main(){
+  float n = max(floor(u_grid + 0.5), 1.0);
+  vec2 uv = fract(v_texCoord * n);
+  gl_FragColor = texture2D(u_image, clamp(uv, 0.0005, 0.9995));
+}`
+  },
+
+  // Radius 1 (same units as the original effect: 1 = one frame height). Everything outside the circle is black.
+  'Twirl': {
+    params: [
+      { k:'angle',   label:'Angle °', t:'num', def:180, step:5 },
+      { k:'radius',  label:'Radius',  t:'num', def:1, step:0.05, min:0.01, max:3 },
+      { k:'centerX', label:'Center X', t:'num', def:0.5, step:0.01 },
+      { k:'centerY', label:'Center Y', t:'num', def:0.5, step:0.01 },
+    ],
+    frag: `
+uniform float u_angle, u_radius, u_centerX, u_centerY;
+void main(){
+  // Aspect-corrected, so the twirl is a true circle (no X/Y stretching).
+  vec2 c = vec2(u_centerX, u_centerY);
+  vec2 d = v_texCoord - c;
+  d.x *= u_aspect;
+  float r = max(u_radius, 0.001);
+  float dist = length(d);
+  if (dist >= r) { gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); return; }   // black background
+  float edge = smoothstep(r, r - 2.0 / u_resY, dist);                    // 2px anti-aliased rim
+  float t = 1.0 - dist / r;
+  float a = radians(u_angle) * t * t;
+  float s = sin(a), co = cos(a);
+  d = vec2(co * d.x - s * d.y, s * d.x + co * d.y);
+  d.x /= u_aspect;
+  vec4 col = texture2D(u_image, clamp(c + d, 0.0, 1.0));
+  gl_FragColor = vec4(col.rgb * edge, 1.0);
+}`
+  },
+
+  'TV Simulation': {
+    params: [
+      { k:'aAmp',   label:'Wave | Amp',   t:'num', def:0.8, step:0.1 },
+      { k:'aFreq',  label:'Freq',         t:'num', def:4,   step:0.5 },
+      { k:'aSpeed', label:'Speed',        t:'num', def:0.5, step:0.1 },
+      { k:'bAmp',   label:'Wave − Amp',   t:'num', def:1.5, step:0.1 },
+      { k:'bFreq',  label:'Freq',         t:'num', def:8,   step:0.5 },
+      { k:'bSpeed', label:'Speed',        t:'num', def:1,   step:0.1 },
+      { k:'scroll', label:'Scroll (0 = off)', t:'num', def:0.2, step:0.05 },
+      { k:'scan',   label:'Scanlines %',  t:'num', def:0,   step:5, min:0, max:100 },
+    ],
+    frag: `
+uniform float u_aAmp, u_aFreq, u_aSpeed, u_bAmp, u_bFreq, u_bSpeed, u_scroll, u_scan;
+void main(){
+  vec2 uv = v_texCoord;
+  float t = u_time;
+  // animated wave "|": bars run vertically, pixels shift up/down as x changes
+  uv.y += u_aAmp * 0.01 * sin(v_texCoord.x * u_aFreq * ${PI2} + t * u_aSpeed * ${PI2});
+  // animated wave "−": bars run horizontally, pixels shift left/right as y changes
+  uv.x += u_bAmp * 0.01 * sin(v_texCoord.y * u_bFreq * ${PI2} + t * u_bSpeed * ${PI2});
+  // scroll the picture inside the waves; 0 turns it off
+  if (abs(u_scroll) > 0.00001) uv.y = fract(uv.y - t * u_scroll);
+  vec4 c = texture2D(u_image, clamp(uv, 0.0, 1.0));
+  float line = 0.5 + 0.5 * sin(v_texCoord.y * u_resY * 3.14159265);
+  c.rgb *= 1.0 - (u_scan / 100.0) * 0.5 * (1.0 - line);
+  gl_FragColor = c;
+}`
+  },
+
+  'Zoom': {
+    params: [
+      { k:'zoom',    label:'Zoom ×',   t:'num', def:1.5, step:0.05, min:0.05, max:50 },
+      { k:'centerX', label:'Center X', t:'num', def:0.5, step:0.01 },
+      { k:'centerY', label:'Center Y', t:'num', def:0.5, step:0.01 },
+      { k:'edge',    label:'Edges',    t:'sel', def:0, opts:[['Clamp',0],['Tile',1],['Transparent',2]] },
+    ],
+    frag: `
+uniform float u_zoom, u_centerX, u_centerY, u_edge;
+void main(){
+  vec2 c = vec2(u_centerX, u_centerY);
+  vec2 uv = c + (v_texCoord - c) / max(u_zoom, 0.0001);
+  if (u_edge > 1.5) {
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) { gl_FragColor = vec4(0.0); return; }
+  } else if (u_edge > 0.5) {
+    uv = fract(uv);
+  }
+  gl_FragColor = texture2D(u_image, clamp(uv, 0.0, 1.0));
+}`
+  },
+
+  'Rotate': {
+    params: [
+      { k:'angle', label:'Angle °', t:'num', def:90, step:1 },
+      { k:'fit',   label:'Auto zoom-out at 90°-type angles (not 0 / 180 / 360)', t:'bool', def:true },
+    ],
+    frag: `
+uniform float u_angle, u_fit;
+void main(){
+  float a = radians(u_angle);
+  float co = cos(a), si = sin(a);
+  vec2 p = v_texCoord - 0.5;
+  p.x *= u_aspect;
+  // Zoom-out factor that keeps the whole rotated frame visible.
+  // It is exactly 1.0 at 0°, 180°, 360° (so no zoom there) and < 1.0 otherwise.
+  float bw = u_aspect * abs(co) + abs(si);
+  float bh = u_aspect * abs(si) + abs(co);
+  float sc = min(u_aspect / bw, 1.0 / bh);
+  if (u_fit < 0.5) sc = 1.0;
+  vec2 q = p / sc;
+  vec2 src = vec2(co * q.x + si * q.y, -si * q.x + co * q.y);
+  src.x /= u_aspect;
+  src += 0.5;
+  if (src.x < 0.0 || src.x > 1.0 || src.y < 0.0 || src.y > 1.0) { gl_FragColor = vec4(0.0); return; }
+  gl_FragColor = texture2D(u_image, src);
+}`
+  },
+
+  'Broken Glass': {
+    params: [
+      { k:'shards',  label:'Shards',      t:'num', def:10,  step:1,    min:2,  max:80 },
+      { k:'shift',   label:'Shift %',     t:'num', def:3,   step:0.5,  min:0,  max:30 },
+      { k:'shade',   label:'Shading %',   t:'num', def:20,  step:1,    min:0,  max:100 },
+      { k:'crack',   label:'Crack width', t:'num', def:0.03, step:0.005, min:0, max:0.3 },
+      { k:'cracka',  label:'Crack %',     t:'num', def:70,  step:5,    min:0,  max:100 },
+      { k:'seed',    label:'Seed',        t:'num', def:1,   step:1 },
+    ],
+    frag: `
+uniform float u_shards, u_shift, u_shade, u_crack, u_cracka, u_seed;
+vec2 hash22(vec2 p){
+  p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+  return fract(sin(p + u_seed * 13.37) * 43758.5453);
+}
+void main(){
+  vec2 uv = v_texCoord;
+  vec2 g = vec2(uv.x * u_aspect, uv.y) * u_shards;
+  vec2 cell = floor(g);
+  vec2 f = fract(g);
+  float f1 = 8.0; float f2 = 8.0;
+  vec2 bestId = vec2(0.0);
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      vec2 nb = vec2(float(i), float(j));
+      vec2 id = cell + nb;
+      vec2 pt = nb + hash22(id);
+      float d = length(pt - f);
+      if (d < f1) { f2 = f1; f1 = d; bestId = id; }
+      else if (d < f2) { f2 = d; }
+    }
+  }
+  vec2 r = hash22(bestId + 7.0) - 0.5;
+  vec2 off = r * (u_shift * 0.01);
+  vec4 c = texture2D(u_image, clamp(uv + off, 0.0, 1.0));
+  c.rgb *= 1.0 + r.x * (u_shade / 100.0);
+  float edge = f2 - f1;
+  float m = 1.0 - smoothstep(0.0, max(u_crack, 0.0001), edge);
+  c.rgb = mix(c.rgb, vec3(0.92) + c.rgb * 0.1, m * (u_cracka / 100.0));
+  gl_FragColor = vec4(clamp(c.rgb, 0.0, 1.0), c.a);
+}`
+  },
+
+};
+
+function hexToVec3(h) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(h || '');
+  const n = m ? parseInt(m[1], 16) : 0;
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+}
+
+function compileEffects() {
+  for (const [name, fx] of Object.entries(EFFECTS)) {
+    try { fx.prog = createProgram(VERT_SRC, GLSL_HEAD + fx.frag); }
+    catch (e) { console.warn('Effect failed to compile:', name, e); fx.prog = null; }
+  }
+  const dd = document.getElementById('effect-dropdown');
+  dd.innerHTML = Object.keys(EFFECTS)
+    .map(n => `<div class="dd-item" onclick="selectEffect('${n}')">${n}</div>`).join('');
+}
+
+function paramValue(layer, p) {
+  let v = layer.params[p.k];
+  return v === undefined ? p.def : v;
+}
+
+// 0..1 progress of a layer's animation at video time t (seconds).
+function animFactor(layer, t) {
+  const a = layer.anim || {};
+  const period = Math.max(0.05, Number(a.period) || 2);
+  const mode = Number(a.mode) || 0;     // 0 loop · 1 ping-pong · 2 once
+  const ph = t / period;
+  if (mode === 1) { const m = ph % 2; return m < 1 ? m : 2 - m; }
+  if (mode === 2) return Math.min(1, ph);
+  return ph - Math.floor(ph);
+}
+
+function toggleAnim(id, key) {
+  if (isExporting) return;
+  const layer = layers.find(l => l.id === id);
+  const fx = layer && layer.effect && EFFECTS[layer.effect];
+  if (!fx) return;
+  const p = fx.params.find(q => q.k === key);
+  layer.animOn = layer.animOn || {};
+  layer.anim = layer.anim || { period: 2, mode: 1 };
+  layer.animOn[key] = !layer.animOn[key];
+  if (layer.animOn[key] && layer.params[key + '_to'] === undefined) {
+    const v = Number(paramValue(layer, p));
+    let to;
+    if (p.min !== undefined && p.max !== undefined) to = (v - p.min) > (p.max - v) ? p.min : p.max;
+    else to = v === 0 ? 1 : v * 2;
+    layer.params[key + '_to'] = to;
+  }
+  renderLayerList();
+}
+
+function setAnim(id, key, val) {
+  if (isExporting) return;
+  const layer = layers.find(l => l.id === id);
+  if (!layer) return;
+  layer.anim = layer.anim || { period: 2, mode: 1 };
+  const n = parseFloat(val);
+  if (!isNaN(n)) layer.anim[key] = n;
+}
+
+function applyLayerUniforms(layer) {
+  const fx = layer.effect && EFFECTS[layer.effect];
+  if (!fx || !fx.prog) return { prog: programs.passthrough, uniforms: {}, lutTex: null };
+  const tNow = video.currentTime || 0;
+  const uniforms = { u_time: tNow, u_aspect: canvas.width / canvas.height, u_resX: canvas.width, u_resY: canvas.height };
+  const af = animFactor(layer, tNow);
+  for (const p of fx.params) {
+    let v = paramValue(layer, p);
+    if (p.t === 'col')       v = hexToVec3(v);
+    else if (p.t === 'bool') v = v ? 1 : 0;
+    else {
+      v = Number(v); if (isNaN(v)) v = p.def;
+      // Animated parameter: slide from its value to the "→" value over the video timeline.
+      if (p.t === 'num' && layer.animOn && layer.animOn[p.k]) {
+        let to = Number(layer.params[p.k + '_to']); if (isNaN(to)) to = v;
+        v = v + (to - v) * af;
+      }
+      if (p.min !== undefined) v = Math.max(p.min, v);
+      if (p.max !== undefined) v = Math.min(p.max, v);
+    }
+    uniforms['u_' + p.k] = v;
+  }
+  return { prog: fx.prog, uniforms, lutTex: null };
+}
+
+function renderLayerBody(layer) {
+  const id = layer.id;
+  const effBtn = `<button class="effect-type-btn" onclick="openEffectDropdown(event,${id})">${layer.effect || 'None ▾'}</button>`;
+  const fx = layer.effect && EFFECTS[layer.effect];
+  let rows = '';
+  if (fx) {
+    const cells = fx.params.map(p => {
+      const v = paramValue(layer, p);
+      if (p.t === 'num') {
+        const lim = (p.min !== undefined ? ` min="${p.min}"` : '') + (p.max !== undefined ? ` max="${p.max}"` : '');
+        const on = !!(layer.animOn && layer.animOn[p.k]);
+        const toV = layer.params[p.k + '_to'] ?? v;
+        return `<span class="param-cell"><span class="param-label">${p.label}</span>
+          <input class="param-input" type="number" value="${v}" step="${p.step ?? 1}"${lim}
+            onchange="setParam(${id},'${p.k}',this.value)">
+          <button class="anim-btn${on ? ' on' : ''}" title="Animate this parameter over time" onclick="toggleAnim(${id},'${p.k}')">A</button>
+          ${on ? `<span class="anim-arrow">→</span><input class="param-input anim-to" type="number" value="${toV}" step="${p.step ?? 1}"${lim}
+            onchange="setParam(${id},'${p.k}_to',this.value)">` : ''}</span>`;
+      }
+      if (p.t === 'sel') {
+        return `<span class="param-label">${p.label}</span>
+          <select class="param-input" style="width:auto" onchange="setParamRaw(${id},'${p.k}',parseFloat(this.value))">
+            ${p.opts.map(o => `<option value="${o[1]}"${Number(v) === o[1] ? ' selected' : ''}>${o[0]}</option>`).join('')}
+          </select>`;
+      }
+      if (p.t === 'col') {
+        return `<span class="param-label">${p.label}</span>
+          <input type="color" value="${v}" style="width:38px;height:24px;padding:0;border:1px solid var(--input-border);background:var(--input-bg);cursor:pointer"
+            oninput="setParamRaw(${id},'${p.k}',this.value)">`;
+      }
+      return `<label class="toggle-label"><input type="checkbox" ${v ? 'checked' : ''}
+          onchange="setParamBool(${id},'${p.k}',this.checked)"><span>${p.label}</span></label>`;
+    });
+    rows = `<div class="param-group">${cells.join('')}</div>`;
+    if (layer.animOn && Object.values(layer.animOn).some(Boolean)) {
+      const an = layer.anim || { period: 2, mode: 1 };
+      rows += `<div class="anim-row"><span class="param-label">Animation · period (s)</span>
+        <input class="param-input" type="number" value="${an.period}" step="0.1" min="0.05" onchange="setAnim(${id},'period',this.value)">
+        <span class="param-label">Mode</span>
+        <select class="param-input" style="width:auto" onchange="setAnim(${id},'mode',this.value)">
+          <option value="0"${Number(an.mode) === 0 ? ' selected' : ''}>Loop</option>
+          <option value="1"${Number(an.mode) === 1 ? ' selected' : ''}>Ping-pong</option>
+          <option value="2"${Number(an.mode) === 2 ? ' selected' : ''}>Once</option>
+        </select></div>`;
+    }
+  }
+  return `<div class="effect-row">${effBtn}</div>${rows}`;
+}
+
+function setParamRaw(id, key, val) {
+  if (isExporting) return;
+  const layer = layers.find(l => l.id === id);
+  if (layer) layer.params[key] = val;
+}
+
+function initWebGL() {
+  if (!gl) return;
+  programs.passthrough = createProgram(VERT_SRC, FRAG_PASSTHROUGH);
+  compileEffects();
+  initQuad();
+
+  // Create the persistent video texture
+  textures[0] = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, textures[0]);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+}
+
+function createFBTex(w, h) {
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  const fb = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  return { fb, tex };
+}
+
+function setupFramebuffers(w, h) {
+  // Delete previous framebuffer resources to avoid WebGL leaks on re-load.
+  if (framebuffers[0]) { gl.deleteFramebuffer(framebuffers[0]); gl.deleteFramebuffer(framebuffers[1]); }
+  if (textures[1])     { gl.deleteTexture(textures[1]); gl.deleteTexture(textures[2]); }
+  const a = createFBTex(w, h), b = createFBTex(w, h);
+  framebuffers[0] = a.fb; textures[1] = a.tex;
+  framebuffers[1] = b.fb; textures[2] = b.tex;
+}
+
+function setUniforms(prog, uniforms) {
+  for (const [k, v] of Object.entries(uniforms)) {
+    if (Array.isArray(v)) {
+      // vec3 uniform (e.g. Channel Remap matrix rows)
+      gl.uniform3fv(gl.getUniformLocation(prog, k), v);
+    } else {
+      const n = Number(v);
+      gl.uniform1f(gl.getUniformLocation(prog, k), isNaN(n) ? 0 : n);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  Render
+// ═══════════════════════════════════════════════════════
+
+function drawWith(prog, uniforms, srcTex, dstFB, w, h, lutTex) {
+  gl.bindFramebuffer(gl.FRAMEBUFFER, dstFB);
+  gl.viewport(0, 0, w, h);
+  gl.useProgram(prog);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, srcTex);
+  gl.uniform1i(gl.getUniformLocation(prog, 'u_image'), 0);
+  if (lutTex) {
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, lutTex);
+    gl.uniform1i(gl.getUniformLocation(prog, 'u_lut'), 1);
+  }
+  setUniforms(prog, uniforms);
+  bindQuad(prog);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+
+function defaultRemapMatrix() {
+  // Identity: R←R, G←G, B←B
+  return [[1,0,0],[0,1,0],[0,0,1]];
+}
+
+// ── Watermark (burned into the canvas → preview and every export) ──
+let wmTex = null, wmKey = '';
+function buildWatermark(W, H) {
+  const key = W + 'x' + H;
+  if (wmTex && wmKey === key) return;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  const WHITE = '#ffffff', RED = '#ff1f1f';
+  const lines = [
+    [['created with a', WHITE]],
+    [['non-activated', RED], [' version', WHITE]],
+    [['www.avs4you.com', WHITE]],
+  ];
+  let fs = Math.max(10, Math.round(H * 0.06));
+  const setFont = () => { ctx.font = `bold ${fs}px Arial, Helvetica, sans-serif`; };
+  const lineW = l => l.reduce((s, p) => s + ctx.measureText(p[0]).width, 0);
+  setFont();
+  let widest = Math.max(...lines.map(lineW));
+  if (widest > W * 0.94) { fs = Math.max(6, Math.floor(fs * W * 0.94 / widest)); setFont(); }
+  const lh = fs * 1.25;
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(2, fs * 0.16);
+  ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+  const top = H / 2 - (lines.length - 1) * lh / 2;      // block is centred in the frame
+  lines.forEach((parts, li) => {
+    let x = (W - lineW(parts)) / 2; const y = top + li * lh;
+    for (const [txt, col] of parts) {
+      ctx.strokeText(txt, x, y);
+      ctx.fillStyle = col; ctx.fillText(txt, x, y);
+      x += ctx.measureText(txt).width;
+    }
+  });
+  if (!wmTex) wmTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, wmTex);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  wmKey = key;
+}
+
+// Burn the watermark into `dstFB` (null = screen). Called at the end of every pass, so on
+// repetition N the watermarks of the earlier passes are run through the effects again.
+function overlayWatermark(dstFB) {
+  const W = canvas.width, H = canvas.height;
+  try {
+    buildWatermark(W, H);
+    gl.enable(gl.BLEND);
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    drawWith(programs.passthrough, {}, wmTex, dstFB, W, H);
+  } catch (e) { console.warn('Watermark failed', e); }
+  gl.disable(gl.BLEND);
+}
+
+function renderFrame() { renderFrameCore(); }
+
+function renderFrameCore() {
+  if (!videoLoaded || !gl) return false;
+  // Skip if the video element has no displayable frame yet.
+  if (video.readyState < 2 /* HAVE_CURRENT_DATA */) return false;
+
+  // Upload video frame. UNPACK_FLIP_Y_WEBGL makes the first pixel row land at
+  // t=1 (top in WebGL convention), matching our quad where t=1 = screen top.
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.bindTexture(gl.TEXTURE_2D, textures[0]);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+
+  const W = canvas.width, H = canvas.height;
+  const activeLayers = layers.filter(l => l.effect !== null);
+  const passes = currentRepMultiplier; // rep N → apply stack N times per frame
+
+  if (activeLayers.length === 0) {
+    drawWith(programs.passthrough, {}, textures[0], null, W, H);
+    overlayWatermark(null);
+    return true;
+  }
+
+  // Ping-pong across all passes × all layers.
+  // Only the very last draw of the very last pass goes to screen (null FB).
+  let srcTexIdx = 0;  // index into textures[]
+  let dstFBIdx  = 0;  // index into framebuffers[]
+
+  for (let pass = 0; pass < passes; pass++) {
+    const isLastPass = pass === passes - 1;
+
+    for (let i = 0; i < activeLayers.length; i++) {
+      const isLastLayer = i === activeLayers.length - 1;
+      const isAbsoluteLast = isLastPass && isLastLayer;
+      const dstFB = isAbsoluteLast ? null : framebuffers[dstFBIdx];
+
+      const { prog, uniforms, lutTex } = applyLayerUniforms(activeLayers[i]);
+      drawWith(prog, uniforms, textures[srcTexIdx], dstFB, W, H, lutTex);
+      if (isLastLayer) overlayWatermark(dstFB);   // end of this pass → watermark is part of the picture
+
+      if (!isAbsoluteLast) {
+        srcTexIdx = dstFBIdx + 1;  // fb0→textures[1], fb1→textures[2]
+        dstFBIdx  = 1 - dstFBIdx;  // alternate
+      }
+    }
+  }
+  return true;
+}
+
+function renderLoop() {
+  // Enforce the Duration trim during normal preview playback.
+  // Done here (every animation frame) rather than via timeupdate so short
+  // clips like 0.36 s aren't overshot — timeupdate only fires every ~250 ms.
+  if (!isExporting && !video.paused) {
+    const trimSecs = getTrimDuration();
+    if (trimSecs !== null && video.currentTime >= trimSecs) {
+      video.pause();
+      video.currentTime = trimSecs;
+      document.getElementById('playBtn').textContent = 'Play';
+    }
+  }
+  renderFrame();  // always render — keeps canvas live while paused too
+  animFrame = requestAnimationFrame(renderLoop);
+}
+
+// ═══════════════════════════════════════════════════════
+//  Video loading
+// ═══════════════════════════════════════════════════════
+
+let currentVideoUrl = null;
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  // Revoke the previous blob URL to avoid memory leaks on repeated loads.
+  if (currentVideoUrl) { URL.revokeObjectURL(currentVideoUrl); }
+  currentVideoUrl = URL.createObjectURL(file);
+  videoLoaded = false;  // mark unready immediately so renderFrame skips during transition
+  video.src = currentVideoUrl;
+  video.load();
+  video.onloadedmetadata = function() {
+    const w = video.videoWidth, h = video.videoHeight;
+    canvas.width = w; canvas.height = h;
+    setupFramebuffers(w, h);
+    document.getElementById('no-video').style.display = 'none';
+    canvas.style.display = 'block';
+    document.getElementById('playBtn').disabled     = false;
+    document.getElementById('proExportBtn').disabled  = false;
+    document.getElementById('proExportBtn').disabled = false;
+    videoLoaded = true;
+    setStatus(`Loaded: ${file.name} (${w}×${h})`);
+    if (!animFrame) renderLoop();
+    // Decode audio into a buffer for export
+    decodeVideoAudio().then(() => {
+      if (audioBuffer) setStatus(`Loaded: ${file.name} (${w}×${h}) — audio decoded`);
+    });
+    // Show first frame as soon as frame data is available.
+    // 'loadeddata' fires when readyState >= HAVE_CURRENT_DATA (frame is decodable).
+    // Guard in case it already fired synchronously (readyState >= 2 right now).
+    if (video.readyState >= 2) {
+      renderFrame();
+    } else {
+      video.addEventListener('loadeddata', () => renderFrame(), { once: true });
+    }
+    video.currentTime = 0;
+  };
+});
+
+function togglePlay() {
+  if (!videoLoaded || isExporting) return;
+  if (video.paused) { video.play();  document.getElementById('playBtn').textContent = 'Pause'; }
+  else              { video.pause(); document.getElementById('playBtn').textContent = 'Play';  }
+}
+video.addEventListener('ended', () => {
+  if (!isExporting) document.getElementById('playBtn').textContent = 'Play';
+});
+
+// ═══════════════════════════════════════════════════════
+//  Layers
+// ═══════════════════════════════════════════════════════
+
+function addLayer() {
+  layers.push({ id: ++layerCounter, effect: null, params: {} });
+  renderLayerList();
+}
+
+function removeLayer(id) {
+  layers = layers.filter(l => l.id !== id);
+  renderLayerList();
+}
+
+function renderLayerList() {
+  const container = document.getElementById('layers-list');
+  container.innerHTML = '';
+  layers.forEach((layer, idx) => {
+    const div = document.createElement('div');
+    div.className = 'layer-item';
+    div.innerHTML = `
+      <div class="layer-header">
+        <span class="layer-title">Layer ${idx + 1}</span>
+        <button class="layer-del" onclick="removeLayer(${layer.id})">✕</button>
+      </div>
+      <div class="layer-body">${renderLayerBody(layer)}</div>`;
+    container.appendChild(div);
+  });
+}
+
+function numInputs(id, layer, defs) {
+  return defs.map(([label, key, def, step, min, max]) =>
+    `<span class="param-label">${label}</span><input class="param-input" type="number" value="${layer.params[key] ?? def}" step="${step}"` +
+    `${min != null ? ` min="${min}"` : ''}${max != null ? ` max="${max}"` : ''} onchange="setParam(${id},'${key}',this.value);renderLayerList()">`).join('');
+}
+function choiceBtns(id, layer, key, def, names) {
+  const cur = layer.params[key] ?? def;
+  return names.map((n, i) =>
+    `<button class="effect-type-btn${cur === i ? ' trig-active' : ''}" onclick="setParam(${id},'${key}',${i});renderLayerList()">${n}</button>`).join('');
+}
+
+// Allowed ranges — setParam clamps to these
+const PARAM_LIMITS = {
+  'Sphere.amount':   [-0.1, 100],
+  'Cylinder.amount': [-100, 100],
+  'Mirror.position': [0, 100]
+};
+
+function setParam(id, key, val) {
+  if (isExporting) return;
+  const layer = layers.find(l => l.id === id);
+  if (!layer) return;
+  let n = parseFloat(val);
+  if (isNaN(n)) return;   // ignore empty / non-numeric input
+  const lim = PARAM_LIMITS[layer.effect + '.' + key];
+  if (lim) n = Math.min(lim[1], Math.max(lim[0], n));
+  layer.params[key] = n;
+}
+
+function setParamBool(id, key, val) {
+  if (isExporting) return;
+  const layer = layers.find(l => l.id === id);
+  if (layer) layer.params[key] = val;
+}
+
+// ── Effect chain save / load ──
+function saveEffectChain() {
+  const chain = layers.map(layer => ({ effect: layer.effect, params: { ...layer.params }, anim: layer.anim ? { ...layer.anim } : undefined, animOn: layer.animOn ? { ...layer.animOn } : undefined }));
+  const payload = { type: 'video-effects-chain', version: 1, layers: chain };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'effect_chain.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  setStatus(`Saved effect chain (${chain.length} layer${chain.length !== 1 ? 's' : ''}).`);
+}
+
+const KNOWN_EFFECT_NAMES = new Set(['Cylinder', 'Sphere', 'Wave', 'Ripple', 'Mirror']);   
+
+function loadEffectChainFile(event) {
+  if (isExporting) return;
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    let parsed;
+    try { parsed = JSON.parse(e.target.result); }
+    catch (err) { alert('Could not parse effect chain file: ' + err.message); return; }
+    const chainLayers = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.layers) ? parsed.layers : null);
+    if (!chainLayers) { alert('Not a valid effect chain file.'); return; }
+    layers = chainLayers.filter(x => x && typeof x === 'object').map(entry => ({
+      id: ++layerCounter,
+      effect: (typeof entry.effect === 'string' && EFFECTS[entry.effect]) ? entry.effect : null,
+      anim: (entry.anim && typeof entry.anim === 'object') ? { ...entry.anim } : undefined,
+      animOn: (entry.animOn && typeof entry.animOn === 'object') ? { ...entry.animOn } : undefined,
+      params: (entry.params && typeof entry.params === 'object' && !Array.isArray(entry.params)) ? { ...entry.params } : {}
+    }));
+    renderLayerList();
+    setStatus(`Loaded effect chain (${layers.length} layer${layers.length !== 1 ? 's' : ''}).`);
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  Repetitions hint
+// ═══════════════════════════════════════════════════════
+
+function getRepetitions() {
+  const v = parseInt(document.getElementById('repetitionsInput').value, 10);
+  return (!isNaN(v) && v >= 1) ? v : 1;
+}
+
+function getLastRepOnly() {
+  const chk = document.getElementById('lastRepOnlyChk');
+  return chk ? chk.checked : false;
+}
+
+function updateRepeatHint() {
+  const n = getRepetitions();
+  const nums = [];
+  for (let i = 1; i <= Math.min(n, 6); i++) nums.push(i);
+  const label = nums.join(' … ') + (n > 6 ? ` … ${n}` : '');
+  document.getElementById('repeatSeqLabel').textContent = label;
+
+  // Show the trim point in frames (at the configured fps) alongside seconds,
+  // so it's clear exactly which frame the trim will land on.
+  const trimSecs = getTrimDuration();
+  const framesLabel = document.getElementById('trimFramesLabel');
+  if (trimSecs !== null) {
+    const fps = getExportFps();
+    framesLabel.textContent = `= ${Math.round(trimSecs * fps)} frames @ ${fps}fps`;
+  } else {
+    framesLabel.textContent = '';
+  }
+}
+
+// init hint on load
+updateRepeatHint();
+
+// ═══════════════════════════════════════════════════════
+//  Effect dropdown
+// ═══════════════════════════════════════════════════════
+
+function openEffectDropdown(event, layerId) {
+  if (isExporting) return;
+  event.stopPropagation();
+  activeDropdownLayerIdx = layerId;
+  const layer = layers.find(l => l.id === layerId);
+  const dd = document.getElementById('effect-dropdown');
+
+  // Mark the current effect so it is highlighted in the list.
+  dd.querySelectorAll('.dd-item').forEach(item => {
+    item.classList.toggle('active', layer && item.textContent === layer.effect);
+  });
+
+  const r = event.target.getBoundingClientRect();
+  dd.style.display = 'block'; // must be visible before measuring its size
+
+  const ddW = dd.offsetWidth, ddH = dd.offsetHeight;
+  const margin = 4;
+  let left = r.left;
+  let top  = r.bottom + 2;
+
+  // Clamp within the viewport so the menu never overflows off-screen,
+  // which is especially easy to hit on narrow mobile widths.
+  if (left + ddW > window.innerWidth  - margin) left = window.innerWidth  - ddW - margin;
+  if (left < margin) left = margin;
+  if (top + ddH > window.innerHeight - margin) top = r.top - ddH - 2; // flip above the button
+  if (top < margin) top = margin;
+
+  dd.style.left = left + 'px';
+  dd.style.top  = top + 'px';
+}
+
+function selectEffect(name) {
+  const layer = layers.find(l => l.id === activeDropdownLayerIdx);
+  if (layer) { layer.effect = name; layer.params = {}; layer.anim = undefined; layer.animOn = undefined; }
+  closeDropdown();
+  renderLayerList();
+}
+
+function closeDropdown() {
+  document.getElementById('effect-dropdown').style.display = 'none';
+  activeDropdownLayerIdx = null;
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.classList.contains('effect-type-btn') &&
+      !e.target.classList.contains('dd-item'))
+    closeDropdown();
+});
+
+// ═══════════════════════════════════════════════════════
+//  Export  (with repetitions / concatenation)
+// ═══════════════════════════════════════════════════════
+
+let isExporting     = false;
+let exportSessionId = 0;
+let exportCancelled = false;
+let captureStream   = null;
+let mediaRecorder   = null;
+let recordedChunks  = [];
+let lastExportMime  = 'video/webm';
+
+// ═══════════════════════════════════════════════════════
+//  Audio (original sound only — no audio effects)
+// ═══════════════════════════════════════════════════════
+
+let audioBuffer = null;         // decoded PCM for entire video
+let audioCtx = null, audioSource = null, sourceGain = null, audioDest = null;
+
+function ensureAudioCtx() {
+  if (audioCtx) return;
+  try {
+    audioCtx    = new (window.AudioContext || window.webkitAudioContext)();
+    audioSource = audioCtx.createMediaElementSource(video);
+    sourceGain  = audioCtx.createGain();
+    audioDest   = audioCtx.createMediaStreamDestination();
+    audioSource.connect(sourceGain);
+    sourceGain.connect(audioDest);
+    sourceGain.connect(audioCtx.destination);
+  } catch (e) { console.warn('AudioContext failed (silent export):', e); }
+}
+
+// ── Pitch layers: real pitch shift in semitones. Tempo and length stay exactly the same, nothing is cut. ──
+let pitchLayers = [];
+let pitchLayerCounter = 0;
+let activePitchSrcs = [];
+let pitchMixGain = null;
+const pitchCache = new Map();
+
+function updateSourceGain() {
+  if (sourceGain) sourceGain.gain.value = pitchLayers.length > 0 ? 0 : 1;
+}
+function isPitchActive() { return pitchLayers.length > 0 && !!audioBuffer; }
+
+// Pitch shift = time-stretch by r (WSOLA, pitch unchanged) + resample by r (back to original length).
+// Grain positions are found on a mono mix so all channels stay phase-aligned.
+function wsolaPositions(chans, len, r, N) {
+  const Hs = N >> 1, D = 4, tol = N >> 2, segD = Hs / D;
+  const Ha = Hs / r;
+  const K = Math.ceil(len * r / Hs) + 2;
+  const pad = 4 * N;
+  const m = new Float32Array(len + pad);
+  for (const ch of chans) for (let i = 0; i < len; i++) m[i] += ch[i] / chans.length;
+  const dl = ((len + pad) / D) | 0;
+  const md = new Float32Array(dl);
+  for (let i = 0; i < dl; i++) { const j = i * D; md[i] = (m[j] + m[j + 1] + m[j + 2] + m[j + 3]) * 0.25; }
+  const pos = new Int32Array(K);
+  for (let k = 1; k < K; k++) {
+    const nominal = Math.round(k * Ha), prev = pos[k - 1];
+    const tD = ((prev + Hs) / D) | 0;
+    const lo = Math.max(0, Math.round((nominal - tol) / D)), hi = Math.round((nominal + tol) / D);
+    let bestC = lo, best = -Infinity;
+    for (let c = lo; c <= hi; c++) {                      // coarse search on the decimated signal
+      let dot = 0, en = 0;
+      for (let i = 0; i < segD; i++) { const b = md[c + i]; dot += md[tD + i] * b; en += b * b; }
+      const sc = dot / Math.sqrt(en + 1e-6);
+      if (sc > best) { best = sc; bestC = c; }
+    }
+    const base = bestC * D, tgt = prev + Hs;
+    let fine = Math.max(0, base), fBest = -Infinity;
+    for (let d = -D; d <= D; d++) {                        // fine search at full rate
+      const c = base + d; if (c < 0) continue;
+      let dot = 0, en = 0;
+      for (let i = 0; i < Hs; i += 2) { const b = m[c + i]; dot += m[tgt + i] * b; en += b * b; }
+      const sc = dot / Math.sqrt(en + 1e-6);
+      if (sc > fBest) { fBest = sc; fine = c; }
+    }
+    pos[k] = fine;
+  }
+  return { pos, K, Hs };
+}
+
+// One pitch-shift stage (|semi| ≤ 12): WSOLA time-stretch by r, then resample by r → same length.
+function shiftOnce(srcBuf, semi) {
+  const sr = srcBuf.sampleRate, len = srcBuf.length, nch = srcBuf.numberOfChannels;
+  const r = Math.pow(2, semi / 12);
+  const N = sr >= 32000 ? 2048 : 1024;
+  const chans = []; for (let c = 0; c < nch; c++) chans.push(srcBuf.getChannelData(c));
+  const { pos, K, Hs } = wsolaPositions(chans, len, r, N);
+  const win = new Float32Array(N);
+  for (let n = 0; n < N; n++) win[n] = 0.5 * (1 - Math.cos(2 * Math.PI * n / N));
+  const out = audioCtx.createBuffer(nch, len, sr);          // same length as the source → nothing is cut
+  const pad = 4 * N;
+  for (let c = 0; c < nch; c++) {
+    const xp = new Float32Array(len + pad); xp.set(chans[c]);
+    const y = new Float32Array(K * Hs + N);
+    for (let k = 0; k < K; k++) {
+      const base = pos[k], o = k * Hs;
+      for (let n = 0; n < N; n++) {
+        const w = (k === 0 && n < Hs) ? 1 : win[n];        // no fade-in at the very start
+        y[o + n] += w * xp[base + n];
+      }
+    }
+    const dst = out.getChannelData(c), last = y.length - 2;
+    for (let i = 0; i < len; i++) {                        // resample back: pitch × r, length = original
+      const q = i * r, i0 = Math.min(last, Math.floor(q)), f = q - i0;
+      dst[i] = y[i0] + (y[i0 + 1] - y[i0]) * f;
+    }
+  }
+  return out;
+}
+
+// Layer pitch is limited to −8…+16 semitones.
+const PITCH_MIN = -8, PITCH_MAX = 16, PITCH_TOTAL = 48, MAX_VOICES = 16;
+
+// Pitch-shifted copy of the original by `total` semitones (cached). Big shifts run in stages of ≤12.
+function getVoiceBuffer(total) {
+  total = Math.min(PITCH_TOTAL, Math.max(-PITCH_TOTAL, total));
+  if (Math.abs(total) < 0.001) return audioBuffer;          // no change → bit-exact original
+  const key = 'st' + total.toFixed(3);
+  if (pitchCache.has(key)) return pitchCache.get(key);
+  let cur = audioBuffer, left = total;
+  while (Math.abs(left) > 0.001) {
+    const step = Math.max(-12, Math.min(12, left));
+    cur = shiftOnce(cur, step);
+    left -= step;
+  }
+  pitchCache.set(key, cur);
+  return cur;
+}
+
+// The pitch layers are parallel voices. Repetition N runs the whole stack N times, and every pass
+// sends EVERY voice through EVERY layer. Layers 5 and 0:  rep 1 → 5, 0 · rep 2 → 10, 5, 5, 0 · rep 3 → 15, 10, 10, 10, 5, 5, 5, 0 …
+// Returns [{ buf, gain }] (equal totals merged; each pass is normalised by the layer count, like a mixer).
+function getPitchVoices(mult) {
+  const n = Math.max(1, Math.floor(mult || 1)), L = pitchLayers.length;
+  let dist = new Map([[0, 1]]);                              // total semitones → weight
+  for (let pass = 0; pass < n; pass++) {
+    const next = new Map();
+    for (const [t, w] of dist) {
+      for (const l of pitchLayers) {
+        let s = Number(l.semi); if (isNaN(s)) s = 0;
+        s = Math.min(PITCH_MAX, Math.max(PITCH_MIN, s));
+        const nt = Math.round(Math.min(PITCH_TOTAL, Math.max(-PITCH_TOTAL, t + s)) * 1000) / 1000;
+        next.set(nt, (next.get(nt) || 0) + w * Math.max(0, l.volume) / L);
+      }
+    }
+    dist = next;
+  }
+  let list = [...dist.entries()].sort((a, b) => b[1] - a[1]);
+  if (list.length > MAX_VOICES) list = list.slice(0, MAX_VOICES);   // keep the strongest voices (keeps CPU/memory sane)
+  return list.map(([t, w]) => ({ semi: t, buf: getVoiceBuffer(t), gain: w }));
+}
+
+function stopPitchSources() {
+  activePitchSrcs.forEach(src => { try { src.stop(); } catch(_) {} src.disconnect(); });
+  activePitchSrcs = [];
+  if (pitchMixGain) { pitchMixGain.disconnect(); pitchMixGain = null; }
+}
+
+function startPitchSources(offset) {
+  stopPitchSources();
+  if (!isPitchActive() || !audioCtx) return;
+  pitchMixGain = audioCtx.createGain();
+  pitchMixGain.gain.value = 1;
+  pitchMixGain.connect(audioDest);
+  pitchMixGain.connect(audioCtx.destination);
+  const off = Math.max(0, Math.min(offset || 0, audioBuffer.duration - 0.001));
+  getPitchVoices(currentRepMultiplier).forEach(v => {
+    const src = audioCtx.createBufferSource();
+    src.buffer = v.buf;
+    const g = audioCtx.createGain();
+    g.gain.value = v.gain;
+    src.connect(g); g.connect(pitchMixGain);
+    src.start(0, off);
+    activePitchSrcs.push(src);
+  });
+}
+
+function refreshPitchAudio() {
+  updateSourceGain();
+  renderPitchLayerList();
+  if (isExporting) return;
+  if (audioBuffer && pitchLayers.length) {
+    setStatus('Processing pitch…');
+    setTimeout(() => {
+      try { getPitchVoices(1); setStatus('Pitch ready.'); }
+      catch (e) { console.warn('Pitch failed', e); setStatus('Pitch processing failed.'); }
+      if (!isExporting && !video.paused) startPitchSources(video.currentTime);
+    }, 30);
+  } else if (!video.paused) startPitchSources(video.currentTime);
+}
+function addPitchLayer() {
+  if (isExporting) return;
+  pitchLayers.push({ id: ++pitchLayerCounter, semi: 3, volume: 1 });
+  refreshPitchAudio();
+}
+function removePitchLayer(id) {
+  if (isExporting) return;
+  pitchLayers = pitchLayers.filter(l => l.id !== id);
+  if (!pitchLayers.length) stopPitchSources();
+  refreshPitchAudio();
+}
+function setPitchField(id, key, val) {
+  if (isExporting) return;
+  const l = pitchLayers.find(x => x.id === id);
+  if (!l) return;
+  const n = parseFloat(val);
+  if (isNaN(n)) return;
+  l[key] = key === 'semi' ? Math.min(PITCH_MAX, Math.max(PITCH_MIN, n)) : Math.max(0, n);
+  refreshPitchAudio();
+}
+function renderPitchLayerList() {
+  const box = document.getElementById('audio-pitch-list');
+  if (!pitchLayers.length) {
+    box.innerHTML = '<span class="pitch-mix-hint">No pitch layers — original audio passes through.</span>';
+    return;
+  }
+  box.innerHTML = pitchLayers.map((l, i) => `
+    <div class="pitch-layer-item">
+      <span class="pitch-layer-title">Pitch ${i + 1}</span>
+      <span class="param-label">Pitch (semitones, −8…+16)</span>
+      <input class="param-input" type="number" value="${l.semi}" step="0.5" min="-8" max="16" onchange="setPitchField(${l.id},'semi',this.value)">
+      <span class="param-label">Volume</span>
+      <input class="param-input" type="number" value="${l.volume}" step="0.1" min="0" onchange="setPitchField(${l.id},'volume',this.value)">
+      <button class="layer-del pitch-layer-del" onclick="removePitchLayer(${l.id})">✕</button>
+    </div>`).join('') + '<span class="pitch-mix-hint">Each repetition runs the pitch stack again on every voice: layers 5 and 0 → rep 1 = 5, 0 · rep 2 = 10, 5, 5, 0.</span>';
+}
+
+video.addEventListener('play', () => {
+  if (isExporting || !isPitchActive()) return;
+  ensureAudioCtx();
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+  startPitchSources(video.currentTime);
+});
+video.addEventListener('pause', () => { if (!isExporting) stopPitchSources(); });
+video.addEventListener('seeked', () => {
+  if (!isExporting && isPitchActive() && !video.paused) startPitchSources(video.currentTime);
+});
+
+async function decodeVideoAudio() {
+  audioBuffer = null;
+  pitchCache.clear();
+  stopPitchSources();
+  if (!currentVideoUrl) return;
+  ensureAudioCtx();
+  if (!audioCtx) return;
+  try {
+    const resp = await fetch(currentVideoUrl);
+    const ab   = await resp.arrayBuffer();
+    audioBuffer = await audioCtx.decodeAudioData(ab);
+  } catch(e) { console.warn('Audio decode failed:', e); }
+}
+
+// ── ensureAudioTap shim for export (uses existing ensureAudioCtx) ──
+function ensureAudioTap() { ensureAudioCtx(); }
+
+
+function setExportingUI(on) {
+  document.getElementById('proExportBtn').disabled    = on;
+  document.getElementById('proExportBtn').textContent = on ? 'Processing…' : 'Process';
+  document.getElementById('playBtn').disabled      = on || !videoLoaded;
+  document.getElementById('cancelBtn').style.display = on ? 'inline-block' : 'none';
+  // Lock file chooser and layer controls during export so nothing corrupts the session.
+  // chooseBtn is a <label> so toggle a CSS class rather than .disabled
+  document.getElementById('chooseBtn').classList.toggle('disabled', on);
+  document.getElementById('fileInput').disabled = on;
+  document.getElementById('addLayerBtn').disabled = on;
+  document.getElementById('repetitionsInput').disabled = on;
+  document.getElementById('lastRepOnlyChk').disabled   = on;
+  document.getElementById('durationInput').disabled = on;
+  document.getElementById('fpsInput').disabled = on;
+  document.getElementById('addPitchLayerBtn').disabled = on;
+  document.querySelectorAll('.pitch-layer-del, #audio-pitch-list input').forEach(b => b.disabled = on);
+  document.getElementById('saveChainBtn').disabled = on;
+  document.getElementById('chainFileInput').disabled = on;
+  document.getElementById('loadChainBtn').classList.toggle('disabled', on);
+  // Grey out all layer delete and effect-type buttons
+  document.querySelectorAll('.layer-del, .effect-type-btn').forEach(b => b.disabled = on);
+}
+
+function resetExportState() {
+  isExporting = false; exportCancelled = false;
+  currentRepMultiplier = 1;  // restore preview to single-pass
+  stopPitchSources();
+  stopManualCapture();
+  if (captureStream) { captureStream.getVideoTracks().forEach(t => t.stop()); captureStream = null; }
+  mediaRecorder = null; recordedChunks = [];
+  setExportingUI(false);
+  document.getElementById('progress-fill').style.width = '0%';
+}
+
+// ── Frame-accurate manual capture ────────────────────────
+// canvas.captureStream(fps) is wall-clock driven: it samples the canvas at a
+// fixed real-time interval, which can drop frames (if rendering/GC stalls the
+// main thread past that interval) or duplicate frames (if the source video's
+// frame arrives slower than the sample rate). To guarantee every decoded
+// video frame is captured exactly once, we instead put the track in manual
+// mode (captureStream(0)) and, on every actual new video frame (via
+// requestVideoFrameCallback), render it and push exactly that frame with
+// track.requestFrame(). Falls back to the old wall-clock mode when the
+// browser lacks requestVideoFrameCallback or manual track.requestFrame().
+let manualDriveActive = false;
+
+function driveManualCapture(mySession, videoTrack) {
+  manualDriveActive = true;
+  const step = () => {
+    if (!manualDriveActive || exportSessionId !== mySession) return;
+    // Render the current video frame through the WebGL effects stack.
+    renderFrame();
+    // Only push frames to the capture track while the video is actually
+    // playing. Browsers fire requestVideoFrameCallback once on a paused
+    // video (to present the current frame), which would bake a frozen
+    // frame into the recording before playback even starts. Skipping the
+    // push when paused also covers the seek-back gap between repetitions.
+    if (!video.paused) {
+      // Flush all queued GPU draw commands so the canvas bitmap is complete
+      // before we push it to the capture stream. Without this, requestFrame()
+      // can snapshot the canvas mid-render and produce a torn/blank frame.
+      try { gl.flush(); } catch (_) {}
+      // Push this exact rendered frame to the MediaRecorder track — one push
+      // per decoded video frame, so output FPS matches the source exactly.
+      try { videoTrack.requestFrame(); } catch (_) {}
+    }
+    if (manualDriveActive) video.requestVideoFrameCallback(step);
+  };
+  video.requestVideoFrameCallback(step);
+}
+
+function stopManualCapture() {
+  manualDriveActive = false;
+}
+
+function cancelExport() {
+  if (!isExporting) return;
+  exportCancelled = true;
+  video.pause();
+  document.getElementById('playBtn').textContent = 'Play';
+  const cancelledSession = exportSessionId;
+  if (mediaRecorder && (mediaRecorder.state === 'recording' || mediaRecorder.state === 'paused')) {
+    // Normal export: stop the recorder; onstop → finishExport handles cleanup.
+    // Safety fallback: if onstop never fires (browser edge case), force-finish after 3 s.
+    mediaRecorder.stop();
+    setTimeout(() => { if (isExporting && exportSessionId === cancelledSession) finishExport(cancelledSession); }, 3000);
+  } else if (mediaRecorder) {
+    // Recorder exists but was never started — just finish.
+    finishExport(cancelledSession);
+  }
+  // Pro Export has no mediaRecorder — its seek loop detects exportCancelled
+  // and calls resetExportState() itself. Nothing extra needed here.
+}
+
+function seekTo(time, sessionId) {
+  return new Promise((resolve, reject) => {
+    if (exportSessionId !== sessionId) { reject(new Error('stale')); return; }
+    if (Math.abs(video.currentTime - time) < 0.0001) { resolve(); return; }
+    const fn = () => {
+      video.removeEventListener('seeked', fn);
+      exportSessionId !== sessionId ? reject(new Error('stale')) : resolve();
+    };
+    video.addEventListener('seeked', fn);
+    video.currentTime = time;
+  });
+}
+
+function getExportFps() {
+  const v = parseInt(document.getElementById('fpsInput').value, 10);
+  return (!isNaN(v) && v >= 1) ? v : 30;
+}
+
+function getTrimDuration() {
+  const v = parseFloat(document.getElementById('durationInput').value);
+  if (isNaN(v) || v <= 0) return null;  // null = full video
+  // Snap to an exact frame boundary at the configured fps so the trim lands
+  // on the same frame the "= N frames @ Xfps" hint shows, instead of an
+  // arbitrary sub-frame time that timeupdate polling would round differently.
+  const fps = getExportFps();
+  return Math.round(v * fps) / fps;
+}
+
+// Wait for the video to reach its natural end OR the trim point, whichever comes first.
+// Returns true on completion, false if cancelled/stale.
+function waitForEndOrTrim(sessionId, trimSecs) {
+  return new Promise(resolve => {
+    const useTrim = trimSecs !== null && trimSecs < video.duration;
+
+    function cleanup() {
+      video.removeEventListener('ended', onEnd);
+      video.removeEventListener('timeupdate', onTime);
+      clearInterval(poll);
+    }
+
+    const onEnd = () => { cleanup(); resolve(true); };
+
+    const onTime = () => {
+      if (video.currentTime >= trimSecs) {
+        video.pause();
+        cleanup();
+        resolve(true);
+      }
+    };
+
+    video.addEventListener('ended', onEnd);
+    if (useTrim) video.addEventListener('timeupdate', onTime);
+
+    const poll = setInterval(() => {
+      if (exportSessionId !== sessionId || exportCancelled || !isExporting) {
+        cleanup();
+        resolve(false);
+      }
+    }, 100);
+  });
+}
+
+async function startExport() {
+  if (!videoLoaded || isExporting) return;
+
+  const repetitions = getRepetitions();
+
+  isExporting = true; exportCancelled = false; recordedChunks = [];
+  const mySession = ++exportSessionId;
+
+  closeOutputStrip();
+  setExportingUI(true);
+  setStatus('Seeking to start…');
+  document.getElementById('progress-fill').style.width = '0%';
+
+  video.pause();
+  document.getElementById('playBtn').textContent = 'Play';
+
+  try { await seekTo(0, mySession); }
+  catch (_) { resetExportState(); setStatus('Export cancelled.'); return; }
+
+  if (exportCancelled || exportSessionId !== mySession) {
+    resetExportState(); setStatus('Export cancelled.'); return;
+  }
+
+  ensureAudioTap();
+  if (audioCtx && audioCtx.state === 'suspended') await audioCtx.resume().catch(() => {});
+
+  const exportFps = getExportFps();
+  const supportsManual = typeof video.requestVideoFrameCallback === 'function';
+  let manualCapture = false;
+  try {
+    captureStream = canvas.captureStream(supportsManual ? 0 : exportFps);
+    if (supportsManual) {
+      const vt = captureStream.getVideoTracks()[0];
+      manualCapture = !!(vt && typeof vt.requestFrame === 'function');
+      if (!manualCapture) captureStream = canvas.captureStream(exportFps); // no requestFrame() — fall back to wall-clock sampling
+    }
+  }
+  catch (e) { resetExportState(); setStatus('Error: captureStream() not supported.'); return; }
+
+  if (audioDest) audioDest.stream.getAudioTracks().forEach(t => captureStream.addTrack(t));
+
+  // Drive capture from real decoded video frames (not wall-clock) so every
+  // frame is captured exactly once — no drops, no duplicates.
+  if (manualCapture) driveManualCapture(mySession, captureStream.getVideoTracks()[0]);
+
+  // Prefer H.264 avc1.4d002a in MP4, fall back to WebM
+  let mime = 'video/mp4;codecs=avc1.4d002a,mp4a.40.2';
+  if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/mp4;codecs=avc1.4d002a';
+  if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/mp4;codecs=avc1.42E01E,mp4a.40.2';
+  if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/mp4;codecs=avc1.42E01E';
+  if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/mp4';
+  if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm;codecs=vp9,opus';
+  if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm;codecs=vp8,opus';
+  if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
+
+  const isMP4 = mime.startsWith('video/mp4');
+  lastExportMime = mime;
+
+  try { mediaRecorder = new MediaRecorder(captureStream, { mimeType: mime, videoBitsPerSecond: 25_000_000 }); }
+  catch (e) { resetExportState(); setStatus('Error: MediaRecorder setup failed.'); return; }
+
+  mediaRecorder.ondataavailable = e => { if (e.data?.size > 0) recordedChunks.push(e.data); };
+  mediaRecorder.onstop = () => finishExport(mySession);
+  // Do NOT start() here — starting now would begin capturing the still frame-0
+  // canvas immediately, while video.play() below is still pending (async
+  // setup, etc.), baking a frozen frame into the very start of the recording.
+  // Instead we defer the actual start until the moment playback begins (see
+  // the `!recorderStarted` branch in the loop below).
+  let recorderStarted = false;
+
+  const fullDuration = video.duration;
+  const trimSecs     = getTrimDuration();                          // null = full video
+  const segDuration  = (trimSecs !== null && trimSecs < fullDuration) ? trimSecs : fullDuration;
+
+  // ── Repetition loop ──────────────────────────────────
+  // Each pass: seek to 0 → play → wait for natural end OR trim point.
+  // The MediaRecorder captures the canvas stream continuously across all passes,
+  // producing one concatenated file (equivalent to ffmpeg -stream_loop N -t trimSecs).
+  // When lastRepOnly=true only the final pass is recorded (effects still applied N times).
+
+  const lastRepOnly = getLastRepOnly();
+  const repStart    = lastRepOnly ? repetitions - 1 : 0;
+
+  for (let rep = repStart; rep < repetitions; rep++) {
+    if (exportCancelled || exportSessionId !== mySession) break;
+
+    // rep N → apply the full effects stack (N+1) times per frame
+    currentRepMultiplier = rep + 1;
+
+    // Seek back to start for each repetition (already at 0 on first pass)
+    if (rep > 0) {
+      setStatus(`Repetition ${rep + 1} / ${repetitions} — seeking…`);
+      // The video is paused (frozen on the trim frame) while we seek back to 0.
+      // MediaRecorder captures the canvas continuously, so without pausing it
+      // here that frozen frame gets baked into the output as a visible freeze
+      // at every trim boundary. Pause the recorder for the duration of the
+      // seek so no frozen frames are captured.
+      if (mediaRecorder && mediaRecorder.state === 'recording' && typeof mediaRecorder.pause === 'function') {
+        try { mediaRecorder.pause(); } catch (_) {}
+      }
+      try { await seekTo(0, mySession); }
+      catch (_) { break; }
+    }
+
+    if (exportCancelled || exportSessionId !== mySession) break;
+
+    const trimLabel = trimSecs !== null ? ` trim:${trimSecs}s` : '';
+    setStatus(`Exporting… rep ${rep + 1}/${repetitions} — effects ×${rep + 1}${trimLabel} (cancel anytime)`);
+
+    // Audio pitch layers play from the start of every repetition.
+    if (isPitchActive()) startPitchSources(0);
+
+    // Begin actual capture right as playback starts (first rep), or resume it
+    // if it was paused during a seek-back gap (later reps) — either way, no
+    // frozen frame gets captured before/between playback.
+    if (!recorderStarted) {
+      mediaRecorder.start(100);
+      recorderStarted = true;
+    } else if (mediaRecorder.state === 'paused' && typeof mediaRecorder.resume === 'function') {
+      try { mediaRecorder.resume(); } catch (_) {}
+    }
+
+    video.play().catch(e => {
+      console.warn('play() blocked during export:', e);
+      cancelExport();
+    });
+
+    // Progress interval for this repetition
+    const iv = setInterval(() => {
+      if (!isExporting || exportSessionId !== mySession) { clearInterval(iv); return; }
+      const frac    = segDuration > 0 ? Math.min(video.currentTime, segDuration) / segDuration : 0;
+      const overall = Math.min(100, Math.round(((rep - repStart + frac) / (repetitions - repStart)) * 100));
+      document.getElementById('progress-fill').style.width = overall + '%';
+      setStatus(`Exporting… rep ${rep + 1}/${repetitions} — ${overall}% total${trimLabel} (cancel anytime)`);
+    }, 200);
+
+    const completed = await waitForEndOrTrim(mySession, trimSecs);
+    clearInterval(iv);
+    if (isPitchActive()) stopPitchSources();
+
+    if (!completed) break;   // cancelled or stale
+  }
+
+  document.getElementById('playBtn').textContent = 'Play';
+
+  if (exportSessionId === mySession && !exportCancelled) {
+    document.getElementById('progress-fill').style.width = '100%';
+    // state can be 'paused' here if the last rep boundary left the recorder
+    // paused (see the pause/resume dance above) — stop() is valid from either state.
+    if (mediaRecorder && (mediaRecorder.state === 'recording' || mediaRecorder.state === 'paused')) {
+      mediaRecorder.stop();
+      const finalSession = mySession;
+      setTimeout(() => { if (isExporting && exportSessionId === finalSession) finishExport(finalSession); }, 3000);
+    }
+  }
+}
+
+function finishExport(sessionId) {
+  if (sessionId !== undefined && exportSessionId !== sessionId) return;
+  const wasCancelled = exportCancelled;
+  const chunks = recordedChunks.slice();
+  resetExportState();
+
+  if (chunks.length === 0) { setStatus('Export stopped — nothing recorded.'); return; }
+
+  const blob = new Blob(chunks, { type: lastExportMime });
+  if (lastOutputBlobUrl) { URL.revokeObjectURL(lastOutputBlobUrl); lastOutputBlobUrl = null; }
+  lastOutputBlobUrl = URL.createObjectURL(blob);
+
+  const ov = document.getElementById('outputVideo');
+  ov.src = lastOutputBlobUrl; ov.load();
+  document.getElementById('output-strip').classList.add('visible');
+
+  if (wasCancelled) {
+    downloadOutput();
+    setStatus('Export cancelled — partial video downloaded & shown below.');
+  } else {
+    const reps = getRepetitions();
+    const lastOnly = getLastRepOnly();
+    const expLabel = lastOnly
+      ? `rep ${reps} only (effects ×${reps})`
+      : `${reps} repetition${reps !== 1 ? 's' : ''} concatenated`;
+    setStatus(`Export complete (${expLabel}) — output shown below.`);
+  }
+}
+
+// ── Pro Export ──────────────────────────────────────────────────────────────
+// Frame-accurate offline export via WebCodecs.  The video is paused and
+// seeked to every frame position (t = fi/fps) so the encoder receives an
+// exact canvas snapshot for each frame — no drops, no duplicates, no
+// wall-clock dependency.  Frames from all repetitions are timestamped
+// sequentially so the output is one seamlessly concatenated WebM file.
+async function startProExport() {
+  if (!videoLoaded || isExporting) return;
+
+  if (typeof VideoEncoder === 'undefined') {
+    setStatus('Process requires Chrome 94+ / Edge 94+ (WebCodecs API).');
+    return;
+  }
+
+  const repetitions  = getRepetitions();
+  const lastRepOnly  = getLastRepOnly();
+  const repStart     = lastRepOnly ? repetitions - 1 : 0;
+  const exportedReps = repetitions - repStart;   // 1 when lastRepOnly, else repetitions
+  isExporting = true; exportCancelled = false;
+  const mySession = ++exportSessionId;
+
+  closeOutputStrip();
+  setExportingUI(true);
+  document.getElementById('progress-fill').style.width = '0%';
+  setStatus('Process: loading muxer…');
+
+  // Dynamically load webm-muxer (pinned to v3 for stable ArrayBufferTarget API).
+  if (typeof WebMMuxer === 'undefined') {
+    try {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/webm-muxer@3/build/webm-muxer.js';
+        s.onload = res;
+        s.onerror = () => rej(new Error('Could not load webm-muxer from CDN — check network connection.'));
+        document.head.appendChild(s);
+      });
+    } catch (e) { resetExportState(); setStatus('Pro Export: ' + e.message); return; }
+  }
+  if (exportCancelled || exportSessionId !== mySession) { resetExportState(); setStatus('Pro Export cancelled.'); return; }
+
+  video.pause();
+  document.getElementById('playBtn').textContent = 'Play';
+  setStatus('Pro Export: seeking to start…');
+  try { await seekTo(0, mySession); }
+  catch (_) { resetExportState(); setStatus('Pro Export cancelled.'); return; }
+  if (exportCancelled || exportSessionId !== mySession) { resetExportState(); setStatus('Pro Export cancelled.'); return; }
+
+  const fps         = getExportFps();
+  const trimSecs    = getTrimDuration();
+  const segDuration = (trimSecs !== null && trimSecs < video.duration) ? trimSecs : video.duration;
+  const totalFrames = Math.max(1, Math.round(segDuration * fps));
+  const totalAll    = totalFrames * exportedReps;
+  const frameDurUs  = Math.round(1_000_000 / fps);   // microseconds per frame
+  const W = canvas.width, H = canvas.height;
+
+  // ── Verify VP9 encode support ──
+  const vCfg = { codec: 'vp09.00.10.08', width: W, height: H, bitrate: 20_000_000, framerate: fps };
+  let vpSupport;
+  try { vpSupport = await VideoEncoder.isConfigSupported(vCfg); }
+  catch (_) { vpSupport = { supported: false }; }
+  if (!vpSupport.supported) {
+    resetExportState();
+    setStatus('Pro Export: VP9 encoding not supported in this browser — try Chrome.');
+    return;
+  }
+
+  // ── Muxer setup ──
+  const { Muxer, ArrayBufferTarget } = WebMMuxer;
+  const muxTarget = new ArrayBufferTarget();
+  const hasAudio  = !!(audioBuffer && typeof AudioEncoder !== 'undefined');
+  const muxer = new Muxer({
+    target: muxTarget,
+    video: { codec: 'V_VP9', width: W, height: H, frameRate: fps },
+    ...(hasAudio ? { audio: { codec: 'A_OPUS', sampleRate: audioBuffer.sampleRate, numberOfChannels: audioBuffer.numberOfChannels } } : {}),
+    firstTimestampBehavior: 'offset'
+  });
+
+  // ── Video encoder ──
+  let encodeError = null;
+  const vEnc = new VideoEncoder({
+    output: (chunk, meta) => { try { muxer.addVideoChunk(chunk, meta); } catch (e) { encodeError = encodeError || e; } },
+    error:  e  => { encodeError = encodeError || e; }
+  });
+  vEnc.configure(vCfg);
+
+  // ── Audio encoder — encode all reps up-front so audio is ready to mux ──
+  // Audio is rendered per repetition (original sound, or the pitch layers mixed together).
+  if (hasAudio) {
+    const sr            = audioBuffer.sampleRate;
+    const ch            = audioBuffer.numberOfChannels;
+    const samplesPerRep = Math.round(segDuration * sr);
+    const totalSamples  = samplesPerRep * exportedReps;
+
+    // Allocate output PCM (one Float32Array per channel, exported reps only).
+    const chanData = Array.from({ length: ch }, () => new Float32Array(totalSamples));
+
+    for (let rep = repStart; rep < repetitions; rep++) {
+      if (exportCancelled || exportSessionId !== mySession) break;
+      const repOffset = (rep - repStart) * samplesPerRep;
+      const mult      = rep + 1;
+
+      if (isPitchActive()) {
+        // Repetition N runs the pitch stack N times; every voice goes through every layer (5,0 → 10,5,5,0).
+        for (const v of getPitchVoices(mult)) {
+          const buf = v.buf, vol = v.gain;
+          for (let c = 0; c < ch; c++) {
+            const src = buf.getChannelData(c), dst = chanData[c];
+            const len = Math.min(samplesPerRep, src.length);
+            for (let i = 0; i < len; i++) dst[repOffset + i] += src[i] * vol;
+          }
+        }
+      } else {
+        // Original audio, unchanged.
+        for (let c = 0; c < ch; c++) {
+          const src = audioBuffer.getChannelData(c), dst = chanData[c];
+          const len = Math.min(samplesPerRep, src.length);
+          for (let i = 0; i < len; i++) dst[repOffset + i] = src[i];
+        }
+      }
+    }
+
+    if (exportCancelled || exportSessionId !== mySession) {
+      vEnc.close(); resetExportState(); setStatus('Pro Export cancelled.'); return;
+    }
+
+    setStatus('Pro Export: encoding audio…');
+    const CHUNK = 4096;
+    const aEnc = new AudioEncoder({
+      output: (chunk, meta) => { try { muxer.addAudioChunk(chunk, meta); } catch (_) {} },
+      error:  e  => console.error('AudioEncoder:', e)
+    });
+    aEnc.configure({ codec: 'opus', sampleRate: sr, numberOfChannels: ch, bitrate: 128_000 });
+
+    // Encode in CHUNK-sized AudioData packets (f32-planar: ch0 then ch1 … concatenated).
+    for (let off = 0; off < totalSamples; off += CHUNK) {
+      const len = Math.min(CHUNK, totalSamples - off);
+      const buf = new Float32Array(ch * len);
+      for (let c = 0; c < ch; c++) buf.set(chanData[c].subarray(off, off + len), c * len);
+      const ad = new AudioData({
+        format: 'f32-planar', sampleRate: sr, numberOfChannels: ch,
+        numberOfFrames: len, timestamp: Math.round(off * 1_000_000 / sr), data: buf.buffer
+      });
+      aEnc.encode(ad);
+      ad.close();
+    }
+    await aEnc.flush();
+  }
+
+  // ── Video frame-by-frame seek → render → encode ──
+  // Each frame: seek to exact time, render through full WebGL effect stack,
+  // gpu-flush, snapshot canvas as VideoFrame with a precise µs timestamp.
+  let gf = 0;   // global frame index across exported reps (drives output timestamp)
+  outer:
+  for (let rep = repStart; rep < repetitions; rep++) {
+    currentRepMultiplier = rep + 1;
+    for (let fi = 0; fi < totalFrames; fi++) {
+      if (exportCancelled || exportSessionId !== mySession || encodeError) break outer;
+
+      const t = fi / fps;
+      try { await seekTo(t, mySession); }
+      catch (_) { break outer; }
+
+      // Render the effects stack for this source frame.
+      renderFrame();
+      // gl.finish() blocks until the GPU finishes all draw commands, ensuring
+      // the canvas bitmap is complete before we snapshot it into a VideoFrame.
+      try { gl.finish(); } catch (_) {}
+
+      const tsUs = gf * frameDurUs;
+      const vf   = new VideoFrame(canvas, { timestamp: tsUs, duration: frameDurUs });
+      // Key-frame every second (or on the first frame of each rep) for seekability.
+      vEnc.encode(vf, { keyFrame: fi === 0 || fi % fps === 0 });
+      vf.close();
+      gf++;
+
+      const pct = Math.round((gf / totalAll) * 100);
+      document.getElementById('progress-fill').style.width = pct + '%';
+      const repLabel = lastRepOnly ? `rep ${repetitions} (last only)` : `rep ${rep + 1}/${repetitions}`;
+      setStatus(`Pro Export: ${repLabel} · frame ${fi + 1}/${totalFrames} · ${pct}% (cancel anytime)`);
+    }
+  }
+
+  if (exportCancelled || exportSessionId !== mySession) {
+    vEnc.close();
+    resetExportState(); setStatus('Pro Export cancelled.'); return;
+  }
+  if (encodeError) {
+    vEnc.close();
+    resetExportState(); setStatus('Pro Export encode error: ' + encodeError.message); return;
+  }
+
+  setStatus('Pro Export: finalizing…');
+  await vEnc.flush();
+  muxer.finalize();
+
+  const blob = new Blob([muxTarget.buffer], { type: 'video/webm' });
+  lastExportMime = 'video/webm';
+  if (lastOutputBlobUrl) { URL.revokeObjectURL(lastOutputBlobUrl); lastOutputBlobUrl = null; }
+  lastOutputBlobUrl = URL.createObjectURL(blob);
+
+  const ov = document.getElementById('outputVideo');
+  ov.src = lastOutputBlobUrl; ov.load();
+  document.getElementById('output-strip').classList.add('visible');
+  document.getElementById('progress-fill').style.width = '100%';
+
+  resetExportState();
+  const proLabel = lastRepOnly
+    ? `rep ${repetitions} only (effects ×${repetitions})`
+    : `${repetitions} rep${repetitions !== 1 ? 's' : ''} concatenated`;
+  setStatus(`Pro Export complete — ${gf} frames · ${proLabel} · output shown below.`);
+}
+
+function downloadOutput() {
+  if (!lastOutputBlobUrl) return;
+  const ext = lastExportMime.startsWith('video/mp4') ? 'mp4' : 'mp4';
+  const a = document.createElement('a');
+  a.href = lastOutputBlobUrl; a.download = `processed_video.${ext}`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function closeOutputStrip() {
+  document.getElementById('output-strip').classList.remove('visible');
+  const v = document.getElementById('outputVideo');
+  v.pause(); v.src = '';
+}
+
+function setStatus(msg) { document.getElementById('status-text').textContent = msg; }
+
+// Save this page as a single self-contained .html file.
+function downloadHtmlFile() {
+  const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'avs-ihtx-er.html';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setStatus('Downloaded avs-ihtx-er.html');
+}
+
+// ═══════════════════════════════════════════════════════
+//  Theme (light / dark)
+// ═══════════════════════════════════════════════════════
+function syncThemeBtn() {
+  const dark = document.body.classList.contains('dark');
+  const b = document.getElementById('themeBtn');
+  if (b) b.textContent = dark ? '☀ Light' : '🌙 Dark';
+}
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  try { localStorage.setItem('avs-theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch (_) {}
+  syncThemeBtn();
+}
+(function initTheme() {
+  try {
+    const t = localStorage.getItem('avs-theme');
+    if (t === 'dark') document.body.classList.add('dark');
+    else if (t === 'light') document.body.classList.remove('dark');
+  } catch (_) {}
+  syncThemeBtn();
+})();
+
+// ═══════════════════════════════════════════════════════
+//  Init
+// ═══════════════════════════════════════════════════════
+if (gl) initWebGL();
+
+</script>
+</body>
+</html>
